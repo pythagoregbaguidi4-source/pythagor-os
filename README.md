@@ -67,3 +67,4 @@ Un boot natif demande un appareil cible différent — voir `docs/ROADMAP.md`.
 `0.1 Hypotenuse` — socle amorçable, branding, shell.
 
 Licence : GPL-3.0 · BioLynx TIC
+
