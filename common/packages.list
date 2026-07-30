@@ -1,0 +1,35 @@
+# Paquets communs aux deux éditions (PC + mobile).
+# Une ligne = un paquet. '#' = commentaire, ignoré au build.
+
+# --- socle ---
+sudo
+locales
+ca-certificates
+apt-transport-https
+less
+bash-completion
+
+# --- réseau ---
+curl
+wget
+openssh-client
+iproute2
+iputils-ping
+dnsutils
+
+# --- outils ---
+git
+nano
+vim-tiny
+htop
+tmux
+tree
+unzip
+zip
+jq
+rsync
+
+# --- langages ---
+python3
+python3-pip
+python3-venv

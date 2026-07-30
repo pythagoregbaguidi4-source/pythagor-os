@@ -1,0 +1,4 @@
+out/
+*.iso
+*.tar.gz
+*.sha256

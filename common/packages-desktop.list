@@ -1,0 +1,19 @@
+# Paquets supplémentaires, édition PC uniquement.
+# XFCE : léger, tient sur des machines modestes.
+
+xserver-xorg
+xinit
+xfce4
+xfce4-terminal
+lightdm
+network-manager-gnome
+firefox-esr
+mousepad
+thunar-archive-plugin
+pulseaudio
+pavucontrol
+
+# --- amorçage live ---
+live-boot
+live-config
+live-config-systemd

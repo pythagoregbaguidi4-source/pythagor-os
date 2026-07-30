@@ -1,0 +1,26 @@
+#!/data/data/com.termux/files/usr/bin/bash
+# Lanceur PYTHAGOR OS mobile — proot, sans root.
+# Installé dans $PREFIX/bin/pythagor par mobile/install-termux.sh.
+set -eu
+
+ROOTFS="$HOME/pythagor"
+[ -d "$ROOTFS/etc" ] || { echo "rootfs introuvable dans $ROOTFS"; exit 1; }
+
+# Résolveur DNS : Android n'expose pas /etc/resolv.conf lisible par proot.
+printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > "$ROOTFS/etc/resolv.conf"
+
+exec proot \
+    --link2symlink \
+    --kill-on-exit \
+    -0 \
+    -r "$ROOTFS" \
+    -b /dev -b /proc -b /sys \
+    -b /sdcard:/mnt/sdcard \
+    -b "$ROOTFS/root:/dev/shm" \
+    -w /root \
+    /usr/bin/env -i \
+        HOME=/root \
+        TERM="${TERM:-xterm-256color}" \
+        LANG=fr_FR.UTF-8 \
+        PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin \
+        /bin/bash --login "$@"
