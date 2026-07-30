@@ -1,0 +1,16 @@
+name: probe-A
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      cible:
+        description: "Quelle édition construire"
+        type: choice
+        default: mobile
+        options: [mobile, desktop, les-deux]
+jobs:
+  a:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
