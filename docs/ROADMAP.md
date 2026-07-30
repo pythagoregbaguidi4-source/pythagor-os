@@ -5,9 +5,11 @@
 - [x] Recette unique amd64 / arm64
 - [x] Branding : `os-release`, motd, invite, locale fr
 - [x] ISO PC live (BIOS + UEFI)
-- [x] rootfs mobile arm64
-- [ ] Premier build vérifié en QEMU
-- [ ] Premier lancement vérifié sur le CAMON 30S
+- [x] rootfs mobile arm64 — build CI vérifié le 2026-07-30 (4m02s, 147 Mo,
+      aarch64 confirmé, sha256 OK, `os-release` et motd validés dans l'archive)
+- [ ] Premier lancement vérifié sur le CAMON 30S — *en attente : téléphone à rebrancher*
+- [ ] Build ISO amd64 (`gh workflow run pythagor.yml -f cible=desktop`)
+- [ ] Premier boot vérifié en QEMU
 
 ## 0.2 — Cathète (identité visuelle)
 
