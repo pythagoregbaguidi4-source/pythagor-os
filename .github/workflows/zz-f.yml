@@ -1,0 +1,16 @@
+name: probe-f
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      cible:
+        type: choice
+        default: mobile
+        options: [mobile, desktop, les-deux]
+jobs:
+  j:
+    if: inputs.cible == 'mobile'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
