@@ -3,11 +3,22 @@
 # Installé dans $PREFIX/bin/pythagor par mobile/install-termux.sh.
 set -eu
 
-ROOTFS="$HOME/pythagor"
-[ -d "$ROOTFS/etc" ] || { echo "rootfs introuvable dans $ROOTFS"; exit 1; }
+ROOTFS="${PYTHAGOR_ROOTFS:-$HOME/pythagor}"
 
-# Résolveur DNS : Android n'expose pas /etc/resolv.conf lisible par proot.
-printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > "$ROOTFS/etc/resolv.conf"
+if [ ! -d "$ROOTFS/etc" ]; then
+    echo "PYTHAGOR OS : rootfs introuvable dans $ROOTFS" >&2
+    echo "Extrais d'abord l'archive, ou définis PYTHAGOR_ROOTFS." >&2
+    exit 1
+fi
+
+# Points de montage attendus par les binds ci-dessous. proot ne les crée pas :
+# on s'en charge ici plutôt que dans l'image, pour ne pas avoir à la rebuilder.
+mkdir -p "$ROOTFS/tmp" "$ROOTFS/mnt/sdcard" "$ROOTFS/proc" "$ROOTFS/sys" "$ROOTFS/dev"
+chmod 1777 "$ROOTFS/tmp"
+
+# Android n'expose pas de /etc/resolv.conf lisible : on le fournit nous-mêmes.
+[ -s "$ROOTFS/etc/resolv.conf" ] || \
+    printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > "$ROOTFS/etc/resolv.conf"
 
 exec proot \
     --link2symlink \
@@ -16,7 +27,7 @@ exec proot \
     -r "$ROOTFS" \
     -b /dev -b /proc -b /sys \
     -b /sdcard:/mnt/sdcard \
-    -b "$ROOTFS/root:/dev/shm" \
+    -b "$ROOTFS/tmp:/dev/shm" \
     -w /root \
     /usr/bin/env -i \
         HOME=/root \
