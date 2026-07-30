@@ -18,7 +18,10 @@ cat > /etc/hosts <<'EOF'
 EOF
 
 # --- bannières ---
-cp /tmp/pythagor-branding/motd /etc/motd
+# Le fichier source contient des séquences \e littérales (les octets ESC bruts
+# ne survivent pas à l'édition) : printf %b les convertit ici.
+printf '%b' "$(cat /tmp/pythagor-branding/motd)" > /etc/motd
+printf '\n' >> /etc/motd
 printf 'PYTHAGOR OS 0.1 \\n \\l\n\n' > /etc/issue
 cp /etc/issue /etc/issue.net
 
