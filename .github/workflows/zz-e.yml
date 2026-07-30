@@ -1,0 +1,14 @@
+name: probe-e
+on:
+  workflow_dispatch:
+    inputs:
+      cible:
+        type: choice
+        default: mobile
+        options: [mobile, desktop, les-deux]
+jobs:
+  j:
+    if: github.event_name != 'workflow_dispatch' || inputs.cible == 'mobile'
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo ok
