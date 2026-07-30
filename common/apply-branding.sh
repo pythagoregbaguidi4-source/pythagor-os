@@ -7,8 +7,12 @@ set -e
 echo "[branding] identité PYTHAGOR OS"
 
 # --- identité système ---
-cp /tmp/pythagor-branding/os-release /etc/os-release
-ln -sf /etc/os-release /usr/lib/os-release
+# Sous Debian /etc/os-release est DÉJÀ un lien vers /usr/lib/os-release.
+# Écrire dans l'un puis lier l'autre créerait une boucle de liens symboliques :
+# on supprime les deux, on écrit le fichier réel, puis on refait le lien.
+rm -f /etc/os-release /usr/lib/os-release
+install -Dm644 /tmp/pythagor-branding/os-release /usr/lib/os-release
+ln -sf ../usr/lib/os-release /etc/os-release
 
 echo "pythagor" > /etc/hostname
 cat > /etc/hosts <<'EOF'

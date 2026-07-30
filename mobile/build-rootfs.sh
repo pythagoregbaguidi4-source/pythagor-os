@@ -42,7 +42,13 @@ docker run --rm --privileged --platform linux/arm64 \
 '
 
 mv "$OUT/rootfs.tmp.tar.gz" "$TARBALL"
-shasum -a 256 "$TARBALL" | tee "$TARBALL.sha256"
+
+# sha256sum sous Linux (CI), shasum sous macOS.
+if command -v sha256sum >/dev/null; then
+    (cd "$OUT" && sha256sum "$(basename "$TARBALL")") | tee "$TARBALL.sha256"
+else
+    (cd "$OUT" && shasum -a 256 "$(basename "$TARBALL")") | tee "$TARBALL.sha256"
+fi
 
 echo
 echo "✔ $TARBALL  ($(du -h "$TARBALL" | cut -f1))"
