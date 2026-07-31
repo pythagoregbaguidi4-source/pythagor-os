@@ -60,11 +60,13 @@ if [ -d /usr/share/gnome-shell ] || command -v gnome-shell >/dev/null 2>&1; then
         fi
     fi
 
-    # thème Graphite-teal-Dark (si absent) — mêmes correctifs chroot que le build
+    # thème Graphite-teal-Dark (si absent). setterm bidon (exit 0) : sa
+    # start_animation fait `setterm -cursor off`, KO sans tty (échoue sinon).
     if [ ! -d /usr/share/themes/Graphite-teal-Dark ]; then
         log "installation thème Graphite-teal-Dark"
         if git clone --depth 1 https://github.com/vinceliuice/Graphite-gtk-theme.git "$WORK/graphite" >/dev/null 2>&1; then
-            ( cd "$WORK/graphite" && bash ./install.sh --dest /usr/share/themes -t teal -c dark --silent-mode ) >/dev/null 2>&1 \
+            mkdir -p "$WORK/bin"; printf '#!/bin/sh\nexit 0\n' > "$WORK/bin/setterm"; chmod +x "$WORK/bin/setterm"
+            ( cd "$WORK/graphite" && PATH="$WORK/bin:$PATH" bash ./install.sh --dest /usr/share/themes -t teal -c dark ) >/dev/null 2>&1 \
                 || log "ATTENTION : install Graphite en échec (thème par défaut conservé)"
         fi
     fi

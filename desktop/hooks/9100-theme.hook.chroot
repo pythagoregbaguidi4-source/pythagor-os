@@ -26,9 +26,15 @@ if [ -d bms ]; then
 fi
 
 # --- Graphite GTK + shell, accent teal (cyan), variante sombre ---
+# Graphite n'a PAS --silent-mode (c'est propre à WhiteSur). Sa start_animation
+# fait `setterm -cursor off` qui échoue sans tty (chroot) → exit 1. On fournit un
+# `setterm` bidon (exit 0) dans le PATH — validé en local (thème produit).
 git clone --depth 1 https://github.com/vinceliuice/Graphite-gtk-theme.git graphite || echo "[warn] clone Graphite KO"
 if [ -d graphite ]; then
-    ( cd graphite && bash ./install.sh --dest /usr/share/themes -t teal -c dark --silent-mode ) > /tmp/graphite.log 2>&1
+    mkdir -p "$WORK/bin"
+    printf '#!/bin/sh\nexit 0\n' > "$WORK/bin/setterm"
+    chmod +x "$WORK/bin/setterm"
+    ( cd graphite && PATH="$WORK/bin:$PATH" bash ./install.sh --dest /usr/share/themes -t teal -c dark ) > /tmp/graphite.log 2>&1
     rc=$?
     echo "[pythagor 9100] Graphite install -> exit $rc"
     echo "----- 30 dernières lignes -----"; tail -30 /tmp/graphite.log || true; echo "----- fin -----"
