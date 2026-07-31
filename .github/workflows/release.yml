@@ -1,8 +1,9 @@
 name: publier l'ISO en Release
 
 # Récupère l'ISO déjà construit et le publie en Release (téléchargement direct,
-# sans login). L'ISO brut dépasse la limite de 2 Gio des assets GitHub → on
-# publie sa version .zip (sous la limite, décompressable partout).
+# sans login). L'ISO dépasse la limite de 2 Gio par asset GitHub (même zippé :
+# c'est du squashfs déjà compressé, ~1 %). On le DÉCOUPE donc en parts < 2 Gio
+# que l'utilisateur reconstitue avec `cat` (aucune décompression).
 # Tag 'iso-*' choisi exprès pour NE PAS déclencher le workflow de build (tags 'v*').
 on:
   workflow_dispatch:
@@ -18,6 +19,9 @@ jobs:
       contents: write
       actions: read
     steps:
+      - name: Récupérer le dépôt (pour les notes de Release)
+        uses: actions/checkout@v4
+
       - name: Récupérer l'ISO du run
         env:
           GH_TOKEN: ${{ github.token }}
@@ -26,30 +30,45 @@ jobs:
             -R ${{ github.repository }} -D iso
           ls -lh iso/
 
-      - name: Compresser (< 2 Gio pour l'asset Release)
+      - name: Découper l'ISO en parts < 2 Gio (limite asset GitHub)
         run: |
           cd iso
-          zip -9 pythagor-os-0.1-amd64.iso.zip pythagor-os-0.1-amd64.iso
-          sz=$(stat -c%s pythagor-os-0.1-amd64.iso.zip)
-          echo "zip = $sz octets (limite 2147483648)"
-          [ "$sz" -lt 2147483648 ] || { echo "TROP GROS même zippé"; exit 1; }
-          sha256sum pythagor-os-0.1-amd64.iso.zip | tee pythagor-os-0.1-amd64.iso.zip.sha256
+          ISO=pythagor-os-0.1-amd64.iso
+          sha256sum "$ISO" | tee "$ISO.sha256"
+          # parts de 1900 MiB (chacune < 2 GiB) ; reconstitution par `cat`.
+          split -b 1900m -d --suffix-length=2 "$ISO" "$ISO.part"
+          ls -lh "$ISO".part*
+          for p in "$ISO".part*; do
+            sz=$(stat -c%s "$p")
+            echo "$p = $sz octets"
+            [ "$sz" -lt 2147483648 ] || { echo "part $p TROP GROSSE"; exit 1; }
+          done
 
-      - name: Publier la Release (création puis upload, avec réessais)
+      - name: Publier la Release (parts, remplace l'ancien .zip)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           R=${{ github.repository }}
+          ISO=pythagor-os-0.1-amd64.iso
           gh release view iso-0.1 -R "$R" >/dev/null 2>&1 || \
-            gh release create iso-0.1 -R "$R" \
-              --title "PYTHAGOR OS 0.1 — édition PC" \
-              --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME identité PYTHAGOR : sombre, accent cyan, effet verre (Graphite + blur), icônes Papirus, dock. 114 outils cybersécu. Mises à jour en place via 'pythagor-update' (plus besoin de retélécharger l'ISO). Télécharge le .zip, décompresse, grave l'ISO sur clé USB (≥ 4 Go)."
+            gh release create iso-0.1 -R "$R" --title "PYTHAGOR OS 0.1 — édition PC" --notes "PYTHAGOR OS 0.1"
+          # retirer les anciens assets .zip devenus obsolètes
+          gh release delete-asset iso-0.1 pythagor-os-0.1-amd64.iso.zip        -R "$R" -y 2>/dev/null || true
+          gh release delete-asset iso-0.1 pythagor-os-0.1-amd64.iso.zip.sha256 -R "$R" -y 2>/dev/null || true
           for i in 1 2 3 4 5; do
-            if gh release upload iso-0.1 \
-                 iso/pythagor-os-0.1-amd64.iso.zip \
-                 iso/pythagor-os-0.1-amd64.iso.zip.sha256 \
-                 -R "$R" --clobber; then echo "upload OK"; break; fi
+            if gh release upload iso-0.1 iso/$ISO.part* iso/$ISO.sha256 -R "$R" --clobber; then echo "upload OK"; break; fi
             echo "réessai $i"; sleep 10
           done
-          echo "=== LIEN DIRECT ==="
-          echo "https://github.com/$R/releases/download/iso-0.1/pythagor-os-0.1-amd64.iso.zip"
+
+      - name: Mettre à jour les notes (reconstitution + gravure)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          R=${{ github.repository }}
+          gh release edit iso-0.1 -R "$R" \
+            --title "PYTHAGOR OS 0.1 — édition PC" \
+            --notes-file .github/release-notes-iso.md
+          echo "=== LIENS DIRECTS ==="
+          for f in part00 part01; do
+            echo "https://github.com/$R/releases/download/iso-0.1/pythagor-os-0.1-amd64.iso.$f"
+          done
