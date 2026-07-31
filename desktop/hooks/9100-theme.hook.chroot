@@ -8,6 +8,11 @@ echo "[pythagor 9100] thème WhiteSur + blur-my-shell"
 WORK=/tmp/pythagor-theme
 rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK" || exit 0
 export HOME=/root
+# CRUCIAL : lib-core.sh de WhiteSur fait, sous `set -Eeo pipefail` :
+#   MY_HOME=$(getent passwd "${SUDO_USER:-$(logname||echo $USER)}" | cut -d: -f6)
+# Dans le chroot, USER est vide → getent passwd "" renvoie 2 → le script avorte
+# en exit 2 sans rien afficher. On fixe USER=root pour que getent réussisse.
+export USER=root
 export DEBIAN_FRONTEND=noninteractive
 export GIT_TERMINAL_PROMPT=0
 
