@@ -24,7 +24,16 @@ c_cyan=$'\e[1;36m'; c_grey=$'\e[0;90m'; c_red=$'\e[1;31m'; c_grn=$'\e[1;32m'; c_
 
 [ -d "$CATALOG" ] || { echo "${c_red}catalogue absent : $CATALOG${c_off}" >&2; exit 1; }
 
-categories() { find "$CATALOG" -name '*.list' ! -name '*.kali.list' -exec basename {} .list \; | sort; }
+# NB : pas de `find -exec` ici — sous proot, find tente un chdir non implémenté
+# (ENOSYS). Un simple glob shell fait le travail sans ce piège.
+categories() {
+    local f
+    for f in "$CATALOG"/*.list; do
+        [ -e "$f" ] || continue
+        case "$f" in *.kali.list) continue;; esac
+        basename "$f" .list
+    done | sort
+}
 pkgs_of()    { grep -hEv '^\s*(#|$)' "$CATALOG/$1.list" 2>/dev/null || true; }
 kpkgs_of()   { grep -hEv '^\s*(#|$)' "$CATALOG/$1.kali.list" 2>/dev/null || true; }
 
