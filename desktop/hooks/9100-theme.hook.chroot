@@ -1,31 +1,48 @@
 #!/bin/sh
 # PYTHAGOR OS — 9100 : thème macOS (WhiteSur) + flou (blur-my-shell v47).
-# UN SEUL hook thème, UN SEUL clone de chaque dépôt (exigence du critique).
-set -e
+# Trace activée (set -x) et étapes non fatales individuellement : on diagnostique
+# tout, puis un CONTRÔLE FINAL échoue si WhiteSur-Dark n'est pas là (vert = thème OK).
+set -x
 echo "[pythagor 9100] thème WhiteSur + blur-my-shell"
 
 WORK=/tmp/pythagor-theme
-rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK"
+rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK" || exit 1
 export HOME=/root
 export DEBIAN_FRONTEND=noninteractive
+export GIT_TERMINAL_PROMPT=0
 
 # --- blur-my-shell v47 = dernier compatible GNOME 43 (absent de Debian) ---
 BMS=/usr/share/gnome-shell/extensions/blur-my-shell@aunetx
-git clone --depth 1 --branch v47 https://github.com/aunetx/blur-my-shell.git bms
-mkdir -p "$BMS/schemas"
-cp -a bms/src/. "$BMS/"
-cp -a bms/metadata.json "$BMS/metadata.json"
-[ -d bms/resources/ui ] && cp -a bms/resources/ui "$BMS/ui" || true
-cp -a bms/schemas/*.gschema.xml "$BMS/schemas/" 2>/dev/null || true
-glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
+git clone --depth 1 --branch v47 https://github.com/aunetx/blur-my-shell.git bms || echo "[warn] clone blur-my-shell KO"
+if [ -d bms ]; then
+    mkdir -p "$BMS/schemas"
+    cp -a bms/src/. "$BMS/" 2>/dev/null || true
+    cp -a bms/metadata.json "$BMS/metadata.json" 2>/dev/null || true
+    [ -d bms/resources/ui ] && cp -a bms/resources/ui "$BMS/ui" 2>/dev/null || true
+    cp -a bms/schemas/*.gschema.xml "$BMS/schemas/" 2>/dev/null || true
+    glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
+fi
 
-# --- WhiteSur : GTK + shell + icônes + curseurs (absents de Debian) ---
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git wsicon
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-cursors.git wscur
-( cd wsgtk && ./install.sh -d /usr/share/themes -c Dark -o normal -a normal -l )
-( cd wsicon && ./install.sh -d /usr/share/icons )
-( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } )
+# --- WhiteSur GTK + shell (sans -l libadwaita, fragile en chroot) ---
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk || echo "[warn] clone WhiteSur-gtk KO"
+if [ -d wsgtk ]; then
+    ( cd wsgtk && ./install.sh -d /usr/share/themes -c Dark -o normal )
+    echo "[pythagor 9100] WhiteSur-gtk install.sh -> exit $?"
+fi
+
+# --- icônes ---
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git wsicon || echo "[warn] clone WhiteSur-icon KO"
+if [ -d wsicon ]; then
+    ( cd wsicon && ./install.sh -d /usr/share/icons )
+    echo "[pythagor 9100] WhiteSur-icon install.sh -> exit $?"
+fi
+
+# --- curseurs (optionnels) ---
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-cursors.git wscur || echo "[warn] clone WhiteSur-cursors KO"
+if [ -d wscur ]; then
+    ( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } )
+    echo "[pythagor 9100] WhiteSur-cursors install -> exit $?"
+fi
 
 # --- caches d'icônes ---
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
@@ -36,3 +53,13 @@ fi
 
 cd /
 rm -rf "$WORK"
+
+# --- CONTRÔLE FINAL : le thème GTK/shell DOIT exister ---
+if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
+    echo "[pythagor 9100] ERREUR : /usr/share/themes/WhiteSur-Dark absent" >&2
+    echo "[pythagor 9100] contenu de /usr/share/themes :" >&2
+    ls -la /usr/share/themes >&2 || true
+    exit 1
+fi
+echo "[pythagor 9100] OK, thèmes installés :"
+ls -d /usr/share/themes/WhiteSur* 2>/dev/null || true
