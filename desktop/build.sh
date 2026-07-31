@@ -29,7 +29,7 @@ docker run --rm --privileged \
         --binary-images iso-hybrid \
         --debian-installer live \
         --iso-application "PYTHAGOR OS" \
-        --iso-publisher "BioLynx TIC" \
+        --iso-publisher "PYTHAGOR OS" \
         --iso-volume "PYTHAGOR_OS_0.1" \
         --bootappend-live "boot=live components quiet splash username=pythagor hostname=pythagor locales=fr_FR.UTF-8 keyboard-layouts=fr"
 

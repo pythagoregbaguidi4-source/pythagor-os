@@ -21,7 +21,7 @@
 ## 0.3 — installable
 
 - [ ] Calamares : installer PYTHAGOR OS sur le disque, pas seulement en live
-- [ ] Dépôt APT `deb.biolynx-tic.com` pour livrer les mises à jour
+- [ ] Dépôt APT dédié pour livrer les mises à jour
 - [ ] Signature GPG des paquets
 
 ## 1.0 — Boot natif sur Android

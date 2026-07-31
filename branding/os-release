@@ -5,5 +5,3 @@ VERSION="0.1"
 ID=pythagor
 ID_LIKE=debian
 ANSI_COLOR="0;36"
-HOME_URL="https://biolynx-tic.com/"
-SUPPORT_URL="https://biolynx-tic.com/"
