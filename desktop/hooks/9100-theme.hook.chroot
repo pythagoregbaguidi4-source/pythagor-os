@@ -31,12 +31,15 @@ fi
 # --- WhiteSur GTK + shell (flags valides : --color dark). Trace bash -x capturée. ---
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk || echo "[warn] clone WhiteSur-gtk KO"
 if [ -d wsgtk ]; then
-    ( cd wsgtk && bash -x ./install.sh --dest /usr/share/themes --color dark ) > /tmp/wsgtk.log 2>&1
+    # --silent-mode : court-circuite start_animation/stop_animation (donc
+    # `setterm -cursor off`, qui échoue sans tty dans le chroot et avortait tout
+    # sous set -e). Désactive aussi l'animation → logs propres.
+    ( cd wsgtk && bash ./install.sh --dest /usr/share/themes --color dark --silent-mode ) > /tmp/wsgtk.log 2>&1
     rc=$?
     echo "[pythagor 9100] WhiteSur-gtk install -> exit $rc"
-    echo "----- 80 dernières lignes de la trace install.sh -----"
-    tail -80 /tmp/wsgtk.log || true
-    echo "----- fin trace -----"
+    echo "----- 30 dernières lignes de la sortie install.sh -----"
+    tail -30 /tmp/wsgtk.log || true
+    echo "----- fin -----"
     # Normaliser le nom attendu par dconf (WhiteSur-Dark) si variante différente.
     if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
         d=$(ls -d /usr/share/themes/WhiteSur*[Dd]ark* 2>/dev/null | head -1)
