@@ -41,10 +41,14 @@ RAW=$(grep -hEv '^\s*(#|$)' \
         /src/desktop/essential-tools.list | sort -u)
 : > config/package-lists/pythagor.list.chroot
 for p in $RAW; do
-    if apt-cache show "$p" >/dev/null 2>&1; then
+    # apt-cache policy (pas 'show') : 'show' laisse passer les paquets simplement
+    # RÉFÉRENCÉS mais non installables (ex. radare2 retiré de bookworm) → build KO.
+    # On exige un vrai candidat d'installation (Candidate != (none)).
+    cand=$(apt-cache policy "$p" 2>/dev/null | awk -F': ' '/Candidate:/{print $2}')
+    if [ -n "$cand" ] && [ "$cand" != "(none)" ]; then
         echo "$p" >> config/package-lists/pythagor.list.chroot
     else
-        echo "  [DROP] paquet introuvable, ignoré : $p" >&2
+        echo "  [DROP] non installable, ignoré : $p" >&2
     fi
 done
 echo "== $(wc -l < config/package-lists/pythagor.list.chroot) paquets retenus =="

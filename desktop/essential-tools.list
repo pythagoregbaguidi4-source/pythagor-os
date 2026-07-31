@@ -65,7 +65,7 @@ macchanger
 yersinia
 
 # --- reversing / analyse binaire ---
-radare2
+rizin
 gdb
 ltrace
 strace

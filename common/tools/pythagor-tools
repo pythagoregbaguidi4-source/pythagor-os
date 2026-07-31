@@ -88,9 +88,12 @@ cmd_info() {
 install_pkgs() {
     local -a want=("$@") avail=() missing=()
     [ ${#want[@]} -gt 0 ] || return 0
-    local p
+    local p cand
     for p in "${want[@]}"; do
-        if apt-cache show "$p" >/dev/null 2>&1; then avail+=("$p"); else missing+=("$p"); fi
+        # apt-cache policy (pas 'show') : exige un vrai candidat installable
+        # (un paquet retiré comme radare2 est seulement « référencé »).
+        cand=$(apt-cache policy "$p" 2>/dev/null | awk -F': ' '/Candidate:/{print $2}')
+        if [ -n "$cand" ] && [ "$cand" != "(none)" ]; then avail+=("$p"); else missing+=("$p"); fi
     done
     if [ ${#avail[@]} -gt 0 ]; then
         echo "${c_grn}→ installation de ${#avail[@]} paquets…${c_off}"
