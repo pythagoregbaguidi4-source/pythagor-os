@@ -34,6 +34,12 @@ chmod 1777 "$ROOTFS/tmp"
 mkdir -p "$ROOTFS/var/lib/pythagor"
 printf '0\n' > "$ROOTFS/var/lib/pythagor/fips_enabled"
 
+# apt, sous proot, tente de passer à l'utilisateur _apt (setresuid) pour ses
+# méthodes de téléchargement — interdit sous proot ("Opération non permise").
+# On lui demande de rester root. (Spécifique mobile : n'affecte pas l'ISO PC.)
+mkdir -p "$ROOTFS/etc/apt/apt.conf.d"
+printf 'APT::Sandbox::User "root";\n' > "$ROOTFS/etc/apt/apt.conf.d/99pythagor-proot"
+
 exec proot \
     --link2symlink \
     --kill-on-exit \
