@@ -1,7 +1,8 @@
 name: publier l'ISO en Release
 
-# Récupère l'ISO déjà construit par un run existant et le publie en Release
-# (téléchargement direct, sans login). Upload fait par le serveur GitHub (rapide).
+# Récupère l'ISO déjà construit et le publie en Release (téléchargement direct,
+# sans login). L'ISO brut dépasse la limite de 2 Gio des assets GitHub → on
+# publie sa version .zip (sous la limite, décompressable partout).
 # Tag 'iso-*' choisi exprès pour NE PAS déclencher le workflow de build (tags 'v*').
 on:
   workflow_dispatch:
@@ -25,14 +26,30 @@ jobs:
             -R ${{ github.repository }} -D iso
           ls -lh iso/
 
-      - name: Publier la Release
+      - name: Compresser (< 2 Gio pour l'asset Release)
+        run: |
+          cd iso
+          zip -9 pythagor-os-0.1-amd64.iso.zip pythagor-os-0.1-amd64.iso
+          sz=$(stat -c%s pythagor-os-0.1-amd64.iso.zip)
+          echo "zip = $sz octets (limite 2147483648)"
+          [ "$sz" -lt 2147483648 ] || { echo "TROP GROS même zippé"; exit 1; }
+          sha256sum pythagor-os-0.1-amd64.iso.zip | tee pythagor-os-0.1-amd64.iso.zip.sha256
+
+      - name: Publier la Release (création puis upload, avec réessais)
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          gh release create iso-0.1 iso/*.iso \
-            -R ${{ github.repository }} \
-            --title "PYTHAGOR OS 0.1 — édition PC" \
-            --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME façon macOS (thème WhiteSur, dock, effet verre), 114 outils cybersécu préinstallés. Graver sur clé USB (≥ 4 Go)." \
-          || gh release upload iso-0.1 iso/*.iso -R ${{ github.repository }} --clobber
-          echo "=== lien direct ==="
-          echo "https://github.com/${{ github.repository }}/releases/download/iso-0.1/$(basename iso/*.iso)"
+          R=${{ github.repository }}
+          gh release view iso-0.1 -R "$R" >/dev/null 2>&1 || \
+            gh release create iso-0.1 -R "$R" \
+              --title "PYTHAGOR OS 0.1 — édition PC" \
+              --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME façon macOS (WhiteSur, dock, verre), 114 outils cybersécu. Télécharge le .zip, décompresse-le, grave l'ISO sur clé USB (≥ 4 Go)."
+          for i in 1 2 3 4 5; do
+            if gh release upload iso-0.1 \
+                 iso/pythagor-os-0.1-amd64.iso.zip \
+                 iso/pythagor-os-0.1-amd64.iso.zip.sha256 \
+                 -R "$R" --clobber; then echo "upload OK"; break; fi
+            echo "réessai $i"; sleep 10
+          done
+          echo "=== LIEN DIRECT ==="
+          echo "https://github.com/$R/releases/download/iso-0.1/pythagor-os-0.1-amd64.iso.zip"
