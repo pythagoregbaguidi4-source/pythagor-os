@@ -43,7 +43,7 @@ jobs:
           gh release view iso-0.1 -R "$R" >/dev/null 2>&1 || \
             gh release create iso-0.1 -R "$R" \
               --title "PYTHAGOR OS 0.1 — édition PC" \
-              --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME façon macOS (WhiteSur, dock, verre), 114 outils cybersécu. Télécharge le .zip, décompresse-le, grave l'ISO sur clé USB (≥ 4 Go)."
+              --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME identité PYTHAGOR : sombre, accent cyan, effet verre (Graphite + blur), icônes Papirus, dock. 114 outils cybersécu. Mises à jour en place via 'pythagor-update' (plus besoin de retélécharger l'ISO). Télécharge le .zip, décompresse, grave l'ISO sur clé USB (≥ 4 Go)."
           for i in 1 2 3 4 5; do
             if gh release upload iso-0.1 \
                  iso/pythagor-os-0.1-amd64.iso.zip \

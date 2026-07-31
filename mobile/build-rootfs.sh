@@ -18,34 +18,11 @@ command -v docker >/dev/null || { echo "docker absent — lance ./tools/setup-ma
 
 echo "== PYTHAGOR OS $PYTHAGOR_VERSION — édition mobile / arm64 =="
 
-# --platform arm64 : émulé via binfmt/qemu, installé par setup-mac.sh
+# --platform arm64 : émulé via binfmt/qemu, installé par setup-mac.sh.
+# La logique est dans mobile/build-rootfs-in-container.sh (évite les guillemets).
 docker run --rm --privileged --platform linux/arm64 \
     -v "$ROOT:/src:ro" -v "$OUT:/out" \
-    debian:bookworm bash -euxo pipefail -c '
-    export DEBIAN_FRONTEND=noninteractive
-    apt-get update -qq
-    apt-get install -y --no-install-recommends \
-        $(grep -hEv "^\s*(#|$)" /src/common/packages.list | tr "\n" " ")
-
-    mkdir -p /tmp/pythagor-branding
-    cp /src/branding/os-release /src/branding/motd /tmp/pythagor-branding/
-
-    # catalogue d'outils embarqué (installé par apply-branding.sh)
-    mkdir -p /tmp/pythagor-tools/lists
-    cp /src/common/tools/pythagor-tools /src/common/tools/pythagor-enable-kali /tmp/pythagor-tools/
-    cp /src/common/tools/lists/*.list /tmp/pythagor-tools/lists/ 2>/dev/null || true
-
-    sh /src/common/apply-branding.sh
-
-    # proot fournit son propre /proc, /sys, /dev : on ne les embarque pas.
-    apt-get clean
-    rm -rf /var/lib/apt/lists/* /tmp/pythagor-branding
-
-    tar -czf /out/rootfs.tmp.tar.gz \
-        --exclude=./proc/* --exclude=./sys/* --exclude=./dev/* \
-        --exclude=./out --exclude=./src \
-        --numeric-owner -C / .
-'
+    debian:bookworm bash /src/mobile/build-rootfs-in-container.sh
 
 mv "$OUT/rootfs.tmp.tar.gz" "$TARBALL"
 

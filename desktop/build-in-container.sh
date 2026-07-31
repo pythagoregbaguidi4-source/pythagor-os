@@ -16,7 +16,11 @@ EOF
 apt-get update -qq
 apt-get install -y --no-install-recommends \
     live-build xorriso isolinux syslinux-common \
-    imagemagick librsvg2-bin fonts-dejavu-core
+    imagemagick librsvg2-bin fonts-dejavu-core git
+
+# /src est monté en lecture seule et appartient à un autre uid → git refuse
+# ("dubious ownership"). On l'autorise pour lire le SHA du cachet de version.
+git config --global --add safe.directory /src 2>/dev/null || true
 
 mkdir -p /build && cd /build
 
@@ -61,8 +65,16 @@ chmod +x config/hooks/normal/0100-pythagor-branding.hook.chroot
 
 mkdir -p config/includes.chroot/tmp/pythagor-tools/lists
 cp /src/common/tools/pythagor-tools /src/common/tools/pythagor-enable-kali \
-   /src/common/tools/help-me config/includes.chroot/tmp/pythagor-tools/
+   /src/common/tools/help-me /src/common/tools/pythagor-update \
+   /src/common/tools/pythagor-update-notify /src/common/tools/profile-update-check.sh \
+   config/includes.chroot/tmp/pythagor-tools/
+cp /src/branding/gnome/pythagor-update-check.desktop config/includes.chroot/tmp/pythagor-tools/
 cp /src/common/tools/lists/*.list config/includes.chroot/tmp/pythagor-tools/lists/ 2>/dev/null || true
+
+# --- cachet de version (pour pythagor-update --check) ---
+mkdir -p config/includes.chroot/etc
+( git -C /src rev-parse --short HEAD 2>/dev/null || echo unknown ) \
+    > config/includes.chroot/etc/pythagor-version
 
 # --- fichiers GNOME / macOS (déposés tels quels dans l'image) ---
 install -Dm644 /src/branding/gnome/gdm-daemon.conf    config/includes.chroot/etc/gdm3/daemon.conf

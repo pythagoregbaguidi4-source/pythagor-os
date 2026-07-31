@@ -55,14 +55,23 @@ sed -i 's/^# *\(fr_FR.UTF-8\)/\1/; s/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen
 locale-gen >/dev/null 2>&1 || true
 echo 'LANG=fr_FR.UTF-8' > /etc/default/locale
 
-# --- catalogue d'outils (si présent) ---
+# --- catalogue d'outils + système de mise à jour (si présent) ---
 if [ -d /tmp/pythagor-tools ]; then
-    echo "[branding] installation du catalogue d'outils"
-    install -m755 /tmp/pythagor-tools/pythagor-tools      /usr/local/bin/pythagor-tools
-    install -m755 /tmp/pythagor-tools/pythagor-enable-kali /usr/local/bin/pythagor-enable-kali
-    install -m755 /tmp/pythagor-tools/help-me             /usr/local/bin/help-me
+    echo "[branding] installation du catalogue d'outils + MAJ"
+    for c in pythagor-tools pythagor-enable-kali help-me pythagor-update pythagor-update-notify; do
+        [ -f "/tmp/pythagor-tools/$c" ] && install -m755 "/tmp/pythagor-tools/$c" "/usr/local/bin/$c"
+    done
     mkdir -p /usr/local/share/pythagor/tools
     cp /tmp/pythagor-tools/lists/*.list /usr/local/share/pythagor/tools/ 2>/dev/null || true
+    # bannière MAJ au login (shell) — léger, mis en cache
+    [ -f /tmp/pythagor-tools/profile-update-check.sh ] && \
+        install -m644 /tmp/pythagor-tools/profile-update-check.sh /etc/profile.d/55-pythagor-update.sh
+    # bannière MAJ GNOME (notification au login) — inoffensif hors GNOME
+    if [ -f /tmp/pythagor-tools/pythagor-update-check.desktop ]; then
+        mkdir -p /etc/skel/.config/autostart
+        install -m644 /tmp/pythagor-tools/pythagor-update-check.desktop \
+            /etc/skel/.config/autostart/pythagor-update-check.desktop
+    fi
 fi
 
 echo "[branding] terminé"

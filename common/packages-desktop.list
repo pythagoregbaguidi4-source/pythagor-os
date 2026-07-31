@@ -1,6 +1,7 @@
 # Paquets supplémentaires, édition PC uniquement.
-# Bureau GNOME habillé façon macOS (verre / WhiteSur). Le thème WhiteSur et
-# blur-my-shell sont installés depuis GitHub par le hook 9100 (absents de Debian).
+# Bureau GNOME identité PYTHAGOR : sombre, accent cyan, effet VERRE. Thème
+# Graphite (accent teal) + blur-my-shell installés depuis GitHub par le hook 9100
+# (absents de Debian) ; icônes Papirus depuis Debian.
 
 # --- socle GNOME (bookworm = GNOME 43) ---
 gnome-core
@@ -35,11 +36,13 @@ firmware-atheros
 plymouth
 plymouth-themes
 
-# --- dépendances de BUILD du thème (purgées par le hook 9900) ---
-# libxml2-utils (xmllint) est CRUCIAL : sans lui, l'install WhiteSur déclenche
-# son auto-installateur de deps (prepare_deps) qui fait hwclock --systohc en
-# chroot et avorte en exit 1. Toutes les deps présentes = prepare_deps jamais
-# appelé = thème construit.
+# --- icônes PYTHAGOR (Papirus, non-macOS) ---
+papirus-icon-theme
+
+# --- dépendances de BUILD du thème Graphite (purgées par le hook 9900) ---
+# libxml2-utils (xmllint) est CRUCIAL : sans lui, l'install vinceliuice déclenche
+# son auto-installateur de deps (prepare_deps → hwclock en chroot → exit 1).
+# Toutes les deps présentes = prepare_deps jamais appelé = thème construit.
 sassc
 libglib2.0-dev-bin
 libxml2-utils

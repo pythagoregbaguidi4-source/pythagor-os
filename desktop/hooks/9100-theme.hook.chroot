@@ -1,22 +1,19 @@
 #!/bin/sh
-# PYTHAGOR OS — 9100 : thème macOS (WhiteSur) + flou (blur-my-shell v47).
-# NON BLOQUANT : le thème est cosmétique, il ne doit pas casser l'ISO. On trace
-# tout (bash -x capturé) pour diagnostiquer WhiteSur, et on finit toujours en 0.
+# PYTHAGOR OS — 9100 : thème verre PYTHAGOR (Graphite-teal-Dark) + flou.
+# NON BLOQUANT (cosmétique). Icônes = Papirus (paquet apt, installé via la liste).
+# Graphite via vinceliuice : mêmes correctifs chroot que WhiteSur
+# (USER=root sinon getent passwd "" -> exit 2 ; --silent-mode sinon setterm -> exit 1).
 set -x
-echo "[pythagor 9100] thème WhiteSur + blur-my-shell"
+echo "[pythagor 9100] thème Graphite-teal-Dark + blur-my-shell"
 
 WORK=/tmp/pythagor-theme
 rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK" || exit 0
 export HOME=/root
-# CRUCIAL : lib-core.sh de WhiteSur fait, sous `set -Eeo pipefail` :
-#   MY_HOME=$(getent passwd "${SUDO_USER:-$(logname||echo $USER)}" | cut -d: -f6)
-# Dans le chroot, USER est vide → getent passwd "" renvoie 2 → le script avorte
-# en exit 2 sans rien afficher. On fixe USER=root pour que getent réussisse.
 export USER=root
 export DEBIAN_FRONTEND=noninteractive
 export GIT_TERMINAL_PROMPT=0
 
-# --- blur-my-shell v47 = dernier compatible GNOME 43 (absent de Debian) ---
+# --- blur-my-shell v47 (verre) = dernier compatible GNOME 43 (absent de Debian) ---
 BMS=/usr/share/gnome-shell/extensions/blur-my-shell@aunetx
 git clone --depth 1 --branch v47 https://github.com/aunetx/blur-my-shell.git bms || echo "[warn] clone blur-my-shell KO"
 if [ -d bms ]; then
@@ -28,48 +25,23 @@ if [ -d bms ]; then
     glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
 fi
 
-# --- WhiteSur GTK + shell (flags valides : --color dark). Trace bash -x capturée. ---
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk || echo "[warn] clone WhiteSur-gtk KO"
-if [ -d wsgtk ]; then
-    # --silent-mode : court-circuite start_animation/stop_animation (donc
-    # `setterm -cursor off`, qui échoue sans tty dans le chroot et avortait tout
-    # sous set -e). Désactive aussi l'animation → logs propres.
-    ( cd wsgtk && bash ./install.sh --dest /usr/share/themes --color dark --silent-mode ) > /tmp/wsgtk.log 2>&1
+# --- Graphite GTK + shell, accent teal (cyan), variante sombre ---
+git clone --depth 1 https://github.com/vinceliuice/Graphite-gtk-theme.git graphite || echo "[warn] clone Graphite KO"
+if [ -d graphite ]; then
+    ( cd graphite && bash ./install.sh --dest /usr/share/themes -t teal -c dark --silent-mode ) > /tmp/graphite.log 2>&1
     rc=$?
-    echo "[pythagor 9100] WhiteSur-gtk install -> exit $rc"
-    echo "----- 30 dernières lignes de la sortie install.sh -----"
-    tail -30 /tmp/wsgtk.log || true
-    echo "----- fin -----"
-    # Normaliser le nom attendu par dconf (WhiteSur-Dark) si variante différente.
-    if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
-        d=$(ls -d /usr/share/themes/WhiteSur*[Dd]ark* 2>/dev/null | head -1)
-        [ -n "$d" ] && ln -sfn "$d" /usr/share/themes/WhiteSur-Dark
-    fi
-fi
-
-# --- icônes ---
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git wsicon || echo "[warn] clone WhiteSur-icon KO"
-[ -d wsicon ] && ( cd wsicon && ./install.sh -d /usr/share/icons ) && echo "[pythagor 9100] icônes OK"
-
-# --- curseurs (optionnels) ---
-git clone --depth 1 https://github.com/vinceliuice/WhiteSur-cursors.git wscur || echo "[warn] clone WhiteSur-cursors KO"
-[ -d wscur ] && ( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } ) && echo "[pythagor 9100] curseurs OK"
-
-# --- caches d'icônes ---
-if command -v gtk-update-icon-cache >/dev/null 2>&1; then
-    for d in /usr/share/icons/WhiteSur /usr/share/icons/WhiteSur-dark; do
-        [ -d "$d" ] && gtk-update-icon-cache -f "$d" 2>/dev/null || true
-    done
+    echo "[pythagor 9100] Graphite install -> exit $rc"
+    echo "----- 30 dernières lignes -----"; tail -30 /tmp/graphite.log || true; echo "----- fin -----"
 fi
 
 cd /
 rm -rf "$WORK"
 
 # --- rapport (non bloquant) ---
-if [ -d /usr/share/themes/WhiteSur-Dark ]; then
-    echo "[pythagor 9100] OK : WhiteSur-Dark installé"
-    ls -d /usr/share/themes/WhiteSur* 2>/dev/null || true
+if [ -d /usr/share/themes/Graphite-teal-Dark ]; then
+    echo "[pythagor 9100] OK : Graphite-teal-Dark installé"
+    ls -d /usr/share/themes/Graphite-teal* 2>/dev/null || true
 else
-    echo "[pythagor 9100] ATTENTION : WhiteSur-Dark absent — GNOME utilisera le thème par défaut (dark+dock+flou restent actifs). Voir la trace ci-dessus."
+    echo "[pythagor 9100] ATTENTION : Graphite-teal-Dark absent — GNOME utilisera le thème par défaut (dark+dock+flou restent actifs). Voir la trace."
 fi
 exit 0

@@ -14,9 +14,12 @@ echo "=== catalogue d'outils PYTHAGOR OS ==="
 tmp="$R/tmp/pt-stage"; rm -rf "$tmp"; mkdir -p "$tmp"
 tar -xzf "$SRC/pythagor-tools.tar.gz" -C "$tmp"
 
-install -Dm755 "$tmp/pythagor-tools"       "$R/usr/local/bin/pythagor-tools"
-install -Dm755 "$tmp/pythagor-enable-kali" "$R/usr/local/bin/pythagor-enable-kali"
-install -Dm755 "$tmp/help-me"              "$R/usr/local/bin/help-me"
+for c in pythagor-tools pythagor-enable-kali help-me pythagor-update pythagor-update-notify; do
+    [ -f "$tmp/$c" ] && install -Dm755 "$tmp/$c" "$R/usr/local/bin/$c"
+done
+# bannière MAJ au login (shell)
+[ -f "$tmp/profile-update-check.sh" ] && \
+    install -Dm644 "$tmp/profile-update-check.sh" "$R/etc/profile.d/55-pythagor-update.sh"
 mkdir -p "$R/usr/local/share/pythagor/tools"
 cp "$tmp"/lists/*.list "$R/usr/local/share/pythagor/tools/"
 rm -rf "$tmp"

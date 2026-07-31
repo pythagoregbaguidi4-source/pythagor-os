@@ -1,30 +1,30 @@
-# PYTHAGOR OS — défauts GNOME système (look macOS « verre »).
+# PYTHAGOR OS — défauts GNOME système : identité maison, sombre, accent cyan,
+# effet VERRE conservé (blur-my-shell) mais look NON-macOS (Graphite + Papirus).
 # Déposé dans /etc/dconf/db/local.d/, compilé par `dconf update`.
-# UN SEUL fichier (le critique de build l'exige : pas de clés dupliquées).
 
 [org/gnome/shell]
 disable-user-extensions=false
 enabled-extensions=['user-theme@gnome-shell-extensions.gcampax.github.com', 'dash-to-dock@micxgx.gmail.com', 'blur-my-shell@aunetx']
 favorite-apps=['org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
 
-# Thème SHELL WhiteSur (nécessite l'extension user-theme, activée ci-dessus)
+# Thème SHELL Graphite (accent cyan/teal ; nécessite l'extension user-theme)
 [org/gnome/shell/extensions/user-theme]
-name='WhiteSur-Dark'
+name='Graphite-teal-Dark'
 
-# Apparence globale : GTK, icônes, curseur, MODE SOMBRE
+# Apparence globale : GTK Graphite, icônes Papirus, MODE SOMBRE
 [org/gnome/desktop/interface]
-gtk-theme='WhiteSur-Dark'
-icon-theme='WhiteSur-dark'
-cursor-theme='WhiteSur-cursors'
+gtk-theme='Graphite-teal-Dark'
+icon-theme='Papirus-Dark'
+cursor-theme='Adwaita'
 color-scheme='prefer-dark'
 font-name='Cantarell 11'
 enable-hot-corners=true
 clock-show-weekday=true
 
 [org/gnome/desktop/wm/preferences]
-theme='WhiteSur-Dark'
-# Boutons façon macOS, à gauche
-button-layout='close,minimize,maximize:'
+theme='Graphite-teal-Dark'
+# Boutons à DROITE (pas la disposition macOS)
+button-layout=':minimize,maximize,close'
 titlebar-font='Cantarell Bold 11'
 
 # Fond d'écran PYTHAGOR
@@ -39,7 +39,7 @@ picture-uri='file:///usr/share/backgrounds/pythagor.png'
 lock-enabled=false
 idle-activation-enabled=false
 
-# Dock type macOS (dash-to-dock, en bas, translucide)
+# Dock en bas, translucide (verre) — dash-to-dock
 [org/gnome/shell/extensions/dash-to-dock]
 dock-position='BOTTOM'
 extend-height=false

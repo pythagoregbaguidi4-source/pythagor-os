@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=PYTHAGOR OS — vérification des mises à jour
+Comment=Notifie si une mise à jour PYTHAGOR OS est disponible
+Exec=pythagor-update-notify
+X-GNOME-Autostart-enabled=true
+NoDisplay=true
+Terminal=false

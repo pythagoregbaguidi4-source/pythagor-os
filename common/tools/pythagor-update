@@ -1,0 +1,47 @@
+#!/bin/bash
+# pythagor-update — met à jour PYTHAGOR OS EN PLACE (branding, thème, outils)
+# depuis le dépôt public. Ne télécharge QUE des scripts/thèmes (quelques Mo),
+# JAMAIS l'ISO. Persiste si le système est installé sur disque ou en live
+# persistant ; sur mobile (proot), tout est déjà persistant.
+#
+#   pythagor-update            met à jour et applique
+#   pythagor-update --check    dit juste si une mise à jour est dispo (léger)
+set -u
+
+REPO_URL="https://github.com/pythagoregbaguidi4-source/pythagor-os"
+SRC=/opt/pythagor-os
+BRANCH=master
+SUDO=""; [ "$(id -u)" -eq 0 ] || SUDO="sudo"
+c_cyan=$'\e[1;36m'; c_grn=$'\e[1;32m'; c_grey=$'\e[0;90m'; c_off=$'\e[0m'
+
+remote_head(){ git ls-remote "$REPO_URL" "refs/heads/$BRANCH" 2>/dev/null | awk '{print substr($1,1,7)}'; }
+local_ver(){ cat /etc/pythagor-version 2>/dev/null || echo "?"; }
+
+if [ "${1:-}" = "--check" ]; then
+    r="$(remote_head)"; l="$(local_ver)"
+    [ -z "$r" ] && { echo "réseau indisponible pour vérifier les mises à jour"; exit 2; }
+    if [ "$r" = "$l" ]; then
+        echo "PYTHAGOR OS est à jour (${l})"; exit 0
+    else
+        echo "${c_cyan}Mise à jour PYTHAGOR OS disponible${c_off} : ${l} → ${r}"
+        echo "Lance : ${c_cyan}pythagor-update${c_off}"; exit 10
+    fi
+fi
+
+echo "${c_cyan}== PYTHAGOR OS — mise à jour ==${c_off}"
+echo "${c_grey}récupération des changements (scripts/thèmes, pas l'ISO)…${c_off}"
+if [ -d "$SRC/.git" ]; then
+    $SUDO git -C "$SRC" fetch --depth 1 origin "$BRANCH" \
+        && $SUDO git -C "$SRC" reset --hard "origin/$BRANCH" \
+        || { echo "échec de la récupération (réseau ?)"; exit 1; }
+else
+    $SUDO git clone --depth 1 -b "$BRANCH" "$REPO_URL" "$SRC" \
+        || { echo "échec du clone (réseau ?)"; exit 1; }
+fi
+
+echo "${c_grey}application…${c_off}"
+$SUDO bash "$SRC/common/apply-pythagor.sh" "$SRC" || { echo "échec de l'application"; exit 1; }
+
+echo
+echo "${c_grn}✔ PYTHAGOR OS mis à jour${c_off} (version $(local_ver))."
+echo "${c_grey}Sur le bureau : déconnecte-toi puis reconnecte-toi pour appliquer le thème.${c_off}"

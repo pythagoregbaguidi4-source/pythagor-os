@@ -73,6 +73,13 @@ que tu vois est un vrai environnement Debian.
       Ajoute les dépôts Kali Rolling (avec pinning : Debian reste la base) pour
       débloquer les outils offensifs absents de Debian. Optionnel.
 
+  pythagor-update
+      Met à jour PYTHAGOR OS EN PLACE (thème, icônes, outils, réglages) depuis
+      le dépôt — quelques Mo, JAMAIS tout l'ISO. « pythagor-update --check » dit
+      juste si une mise à jour est disponible. Une bannière le signale au
+      démarrage. (Persiste si le système est installé sur disque ou en live
+      persistant ; sur mobile, tout est déjà persistant.)
+
 
 4. LE CATALOGUE D'OUTILS
 --------------------------------------------------------------------------------
