@@ -5,6 +5,6 @@
 set -e
 echo "[pythagor 9900] nettoyage"
 
-apt-get purge --auto-remove -y sassc libglib2.0-dev-bin 2>/dev/null || true
+apt-get purge --auto-remove -y sassc libglib2.0-dev-bin libxml2-utils 2>/dev/null || true
 apt-get clean
 rm -rf /var/lib/apt/lists/* /tmp/pythagor-theme

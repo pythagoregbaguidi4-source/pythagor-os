@@ -36,8 +36,13 @@ plymouth
 plymouth-themes
 
 # --- dépendances de BUILD du thème (purgées par le hook 9900) ---
+# libxml2-utils (xmllint) est CRUCIAL : sans lui, l'install WhiteSur déclenche
+# son auto-installateur de deps (prepare_deps) qui fait hwclock --systohc en
+# chroot et avorte en exit 1. Toutes les deps présentes = prepare_deps jamais
+# appelé = thème construit.
 sassc
 libglib2.0-dev-bin
+libxml2-utils
 
 # --- polices ---
 fonts-cantarell
