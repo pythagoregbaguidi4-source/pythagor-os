@@ -28,12 +28,19 @@ chmod 1777 "$ROOTFS/tmp"
 [ -s "$ROOTFS/etc/resolv.conf" ] || \
     printf 'nameserver 8.8.8.8\nnameserver 1.1.1.1\n' > "$ROOTFS/etc/resolv.conf"
 
+# libgcrypt (apt, gpg) lit /proc/sys/crypto/fips_enabled à l'init ; ce chemin
+# manque sous proot et libgcrypt AVORTE (ENOSYS) → apt-get update plante. On
+# fournit un faux fichier valant 0 (FIPS off) qu'on montera sur ce chemin.
+mkdir -p "$ROOTFS/var/lib/pythagor"
+printf '0\n' > "$ROOTFS/var/lib/pythagor/fips_enabled"
+
 exec proot \
     --link2symlink \
     --kill-on-exit \
     -0 \
     -r "$ROOTFS" \
     -b /dev -b /proc -b /sys \
+    -b "$ROOTFS/var/lib/pythagor/fips_enabled:/proc/sys/crypto/fips_enabled" \
     -b /sdcard:/mnt/sdcard \
     -b "$ROOTFS/tmp:/dev/shm" \
     -w /root \
