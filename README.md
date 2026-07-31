@@ -61,9 +61,32 @@ Un boot natif demande un appareil cible différent — voir `docs/ROADMAP.md`.
 ./tools/test-qemu.sh          # teste l'ISO sans graver
 ```
 
+## Catalogue d'outils
+
+PYTHAGOR OS embarque un catalogue d'outils organisé par catégorie (recon, web,
+réseau, reversing, forensique, dev, crypto…), façon Kali/BlackArch mais
+installable **à la demande** — on ne télécharge que ce qu'on veut.
+
+```sh
+pythagor-tools list                      # catégories : compte + taille estimée
+pythagor-tools search nmap               # trouver un outil
+pythagor-tools info web                  # détail d'une catégorie
+pythagor-tools install recon-osint web   # installer des catégories
+pythagor-tools install all               # tout installer
+pythagor-enable-kali                     # débloquer les outils Kali-only (opt-in)
+```
+
+Les listes vivent dans `common/tools/lists/*.list` (Debian) et `*.kali.list`
+(outils présents uniquement dans Kali). L'installation est **tolérante** : un
+paquet introuvable est ignoré et signalé, jamais d'échec global.
+
+> Sur le CAMON 30S : ~19 Go libres et ~130 Ko/s. Tout installer représente
+> plusieurs Go et de longues heures de téléchargement — d'où l'installation par
+> catégorie plutôt qu'en bloc.
+
 ## Versions
 
-`0.1` — socle amorçable, branding, shell.
+`0.1` — socle amorçable, branding, shell, catalogue d'outils.
 
 Licence : GPL-3.0
 

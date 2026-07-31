@@ -1,0 +1,137 @@
+#!/bin/bash
+# pythagor-tools — gestionnaire du catalogue d'outils de PYTHAGOR OS.
+#
+# Le catalogue vit dans /usr/local/share/pythagor/tools/ :
+#   <catégorie>.list        paquets Debian
+#   <catégorie>.kali.list   paquets présents uniquement dans les dépôts Kali
+#
+# Usage :
+#   pythagor-tools list                  liste les catégories (compte + taille estimée)
+#   pythagor-tools search <terme>        cherche un outil dans tout le catalogue
+#   pythagor-tools info <catégorie>      détaille une catégorie
+#   pythagor-tools install <cat> [cat…]  installe une ou plusieurs catégories
+#   pythagor-tools install all           installe TOUT le catalogue
+#
+# Installation tolérante : les paquets introuvables (nom obsolète, absent en
+# arm64, Kali non activé) sont ignorés et listés à la fin — jamais d'échec global.
+set -euo pipefail
+
+CATALOG=/usr/local/share/pythagor/tools
+SUDO=""
+[ "$(id -u)" -eq 0 ] || SUDO="sudo"
+
+c_cyan=$'\e[1;36m'; c_grey=$'\e[0;90m'; c_red=$'\e[1;31m'; c_grn=$'\e[1;32m'; c_off=$'\e[0m'
+
+[ -d "$CATALOG" ] || { echo "${c_red}catalogue absent : $CATALOG${c_off}" >&2; exit 1; }
+
+categories() { find "$CATALOG" -name '*.list' ! -name '*.kali.list' -exec basename {} .list \; | sort; }
+pkgs_of()    { grep -hEv '^\s*(#|$)' "$CATALOG/$1.list" 2>/dev/null || true; }
+kpkgs_of()   { grep -hEv '^\s*(#|$)' "$CATALOG/$1.kali.list" 2>/dev/null || true; }
+
+kali_enabled() { [ -f /etc/apt/sources.list.d/kali.list ]; }
+
+cmd_list() {
+    echo "${c_cyan}Catalogue PYTHAGOR OS${c_off}"
+    echo
+    printf "  %-16s %8s %8s   %s\n" "catégorie" "debian" "kali" "taille estimée"
+    printf "  %-16s %8s %8s   %s\n" "─────────" "──────" "────" "──────────────"
+    local td=0 tk=0
+    for c in $(categories); do
+        local nd nk sz
+        nd=$(pkgs_of "$c" | wc -l | tr -d ' ')
+        nk=$(kpkgs_of "$c" | wc -l | tr -d ' ')
+        sz=$(sed -n 's/^# est_size_mb: //p' "$CATALOG/$c.list" 2>/dev/null | head -1)
+        td=$((td + nd)); tk=$((tk + nk))
+        printf "  %-16s %8s %8s   %s\n" "$c" "$nd" "$nk" "${sz:+~${sz} Mo}"
+    done
+    echo
+    echo "  ${c_grey}total : $td paquets Debian + $tk Kali-only${c_off}"
+    kali_enabled || echo "  ${c_grey}dépôt Kali désactivé — 'pythagor-enable-kali' pour les outils offensifs${c_off}"
+    echo
+    echo "  Installer :  ${c_cyan}pythagor-tools install <catégorie>${c_off}   ou   ${c_cyan}install all${c_off}"
+}
+
+cmd_search() {
+    local term="${1:?terme requis}"
+    for c in $(categories); do
+        { pkgs_of "$c"; kpkgs_of "$c"; } | grep -i -- "$term" | while read -r p; do
+            printf "  %-30s ${c_grey}%s${c_off}\n" "$p" "$c"
+        done
+    done
+}
+
+cmd_info() {
+    local c="${1:?catégorie requise}"
+    [ -f "$CATALOG/$c.list" ] || { echo "${c_red}catégorie inconnue : $c${c_off}" >&2; exit 1; }
+    echo "${c_cyan}$c${c_off}"
+    sed -n 's/^# desc: //p' "$CATALOG/$c.list" | head -1
+    echo
+    echo "  Debian ($(pkgs_of "$c" | wc -l | tr -d ' ')) :"
+    pkgs_of "$c" | pr -3 -t -w 78 2>/dev/null || pkgs_of "$c"
+    if [ -s "$CATALOG/$c.kali.list" ]; then
+        echo
+        echo "  Kali ($(kpkgs_of "$c" | wc -l | tr -d ' ')) :"
+        kpkgs_of "$c" | pr -3 -t -w 78 2>/dev/null || kpkgs_of "$c"
+    fi
+}
+
+# Installe une liste de paquets en ignorant les introuvables.
+install_pkgs() {
+    local -a want=("$@") avail=() missing=()
+    [ ${#want[@]} -gt 0 ] || return 0
+    local p
+    for p in "${want[@]}"; do
+        if apt-cache show "$p" >/dev/null 2>&1; then avail+=("$p"); else missing+=("$p"); fi
+    done
+    if [ ${#avail[@]} -gt 0 ]; then
+        echo "${c_grn}→ installation de ${#avail[@]} paquets…${c_off}"
+        $SUDO apt-get install -y --no-install-recommends "${avail[@]}" || {
+            echo "${c_red}échec du lot — reprise paquet par paquet${c_off}"
+            for p in "${avail[@]}"; do
+                $SUDO apt-get install -y --no-install-recommends "$p" 2>/dev/null \
+                    || { echo "  ${c_red}× $p${c_off}"; missing+=("$p"); }
+            done
+        }
+    fi
+    if [ ${#missing[@]} -gt 0 ]; then
+        printf '%s\n' "${missing[@]}" >> /tmp/pythagor-tools-skipped.txt
+        echo "${c_grey}  ${#missing[@]} ignorés (voir /tmp/pythagor-tools-skipped.txt)${c_off}"
+    fi
+}
+
+cmd_install() {
+    [ $# -gt 0 ] || { echo "usage: pythagor-tools install <catégorie…|all>" >&2; exit 1; }
+    : > /tmp/pythagor-tools-skipped.txt
+    local -a cats
+    if [ "$1" = "all" ]; then mapfile -t cats < <(categories); else cats=("$@"); fi
+
+    echo "${c_cyan}mise à jour des index apt…${c_off}"
+    $SUDO apt-get update
+
+    local c
+    for c in "${cats[@]}"; do
+        [ -f "$CATALOG/$c.list" ] || { echo "${c_red}catégorie inconnue : $c${c_off}"; continue; }
+        echo
+        echo "${c_cyan}══ $c ══${c_off}"
+        # shellcheck disable=SC2046
+        install_pkgs $(pkgs_of "$c")
+        if [ -s "$CATALOG/$c.kali.list" ]; then
+            if kali_enabled; then
+                # shellcheck disable=SC2046
+                install_pkgs $(kpkgs_of "$c")
+            else
+                echo "${c_grey}  $(kpkgs_of "$c" | wc -l | tr -d ' ') outils Kali sautés (dépôt désactivé)${c_off}"
+            fi
+        fi
+    done
+    echo
+    echo "${c_grn}✔ terminé.${c_off}  Ignorés : $(wc -l < /tmp/pythagor-tools-skipped.txt | tr -d ' ')"
+}
+
+case "${1:-list}" in
+    list|ls)            cmd_list ;;
+    search|s)           shift; cmd_search "$@" ;;
+    info)               shift; cmd_info "$@" ;;
+    install|i|add)      shift; cmd_install "$@" ;;
+    *)                  echo "usage: pythagor-tools {list|search|info|install} …" >&2; exit 1 ;;
+esac

@@ -43,6 +43,11 @@ docker run --rm --privileged \
     cp /src/common/apply-branding.sh config/hooks/normal/0100-pythagor-branding.hook.chroot
     chmod +x config/hooks/normal/0100-pythagor-branding.hook.chroot
 
+    # --- catalogue d'outils embarqué (installé par le même hook) ---
+    mkdir -p config/includes.chroot/tmp/pythagor-tools/lists
+    cp /src/common/tools/pythagor-tools /src/common/tools/pythagor-enable-kali config/includes.chroot/tmp/pythagor-tools/
+    cp /src/common/tools/lists/*.list config/includes.chroot/tmp/pythagor-tools/lists/ 2>/dev/null || true
+
     lb build
     cp -v live-image-amd64.hybrid.iso /out/pythagor-os-0.1-amd64.iso
 '

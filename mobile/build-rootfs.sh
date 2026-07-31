@@ -29,6 +29,12 @@ docker run --rm --privileged --platform linux/arm64 \
 
     mkdir -p /tmp/pythagor-branding
     cp /src/branding/os-release /src/branding/motd /tmp/pythagor-branding/
+
+    # catalogue d'outils embarqué (installé par apply-branding.sh)
+    mkdir -p /tmp/pythagor-tools/lists
+    cp /src/common/tools/pythagor-tools /src/common/tools/pythagor-enable-kali /tmp/pythagor-tools/
+    cp /src/common/tools/lists/*.list /tmp/pythagor-tools/lists/ 2>/dev/null || true
+
     sh /src/common/apply-branding.sh
 
     # proot fournit son propre /proc, /sys, /dev : on ne les embarque pas.

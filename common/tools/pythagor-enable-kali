@@ -1,0 +1,41 @@
+#!/bin/bash
+# pythagor-enable-kali — ajoute les dépôts Kali Rolling à PYTHAGOR OS (Debian).
+#
+# Beaucoup d'outils offensifs (metasploit, wifite, nombre de scanners) n'existent
+# QUE dans Kali. Ce script les rend installables, SANS transformer le système en
+# Kali : un pinning apt maintient Debian par défaut et ne tire de Kali QUE les
+# paquets explicitement demandés.
+#
+# ⚠ Mélanger Kali Rolling et Debian stable n'est pas sans risque (versions de
+#   libc/toolchain divergentes). Le pinning limite la casse mais ne l'annule pas.
+#   À n'activer que si tu veux vraiment les outils Kali-only.
+set -euo pipefail
+
+SUDO=""; [ "$(id -u)" -eq 0 ] || SUDO="sudo"
+c_cyan=$'\e[1;36m'; c_grey=$'\e[0;90m'; c_off=$'\e[0m'
+
+echo "${c_cyan}Activation des dépôts Kali Rolling${c_off}"
+
+$SUDO apt-get update
+$SUDO apt-get install -y --no-install-recommends curl gnupg
+
+echo "${c_grey}— clé d'archive Kali${c_off}"
+curl -fsSL https://archive.kali.org/archive-key.asc \
+    | $SUDO gpg --dearmor -o /usr/share/keyrings/kali-archive-keyring.gpg
+
+echo "${c_grey}— source Kali${c_off}"
+echo "deb [signed-by=/usr/share/keyrings/kali-archive-keyring.gpg] http://http.kali.org/kali kali-rolling main contrib non-free non-free-firmware" \
+    | $SUDO tee /etc/apt/sources.list.d/kali.list >/dev/null
+
+echo "${c_grey}— pinning : Debian reste prioritaire${c_off}"
+$SUDO tee /etc/apt/preferences.d/pythagor-kali-pin >/dev/null <<'EOF'
+# Kali n'est utilisé que pour les paquets absents de Debian ou demandés
+# explicitement (apt-get install -t kali-rolling …). Debian garde la main.
+Package: *
+Pin: release o=Kali
+Pin-Priority: 100
+EOF
+
+$SUDO apt-get update
+echo
+echo "${c_cyan}✔ Kali activé.${c_off}  Les colonnes 'kali' de 'pythagor-tools list' sont maintenant installables."

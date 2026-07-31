@@ -55,4 +55,13 @@ sed -i 's/^# *\(fr_FR.UTF-8\)/\1/; s/^# *\(en_US.UTF-8\)/\1/' /etc/locale.gen
 locale-gen >/dev/null 2>&1 || true
 echo 'LANG=fr_FR.UTF-8' > /etc/default/locale
 
+# --- catalogue d'outils (si présent) ---
+if [ -d /tmp/pythagor-tools ]; then
+    echo "[branding] installation du catalogue d'outils"
+    install -m755 /tmp/pythagor-tools/pythagor-tools      /usr/local/bin/pythagor-tools
+    install -m755 /tmp/pythagor-tools/pythagor-enable-kali /usr/local/bin/pythagor-enable-kali
+    mkdir -p /usr/local/share/pythagor/tools
+    cp /tmp/pythagor-tools/lists/*.list /usr/local/share/pythagor/tools/ 2>/dev/null || true
+fi
+
 echo "[branding] terminé"
