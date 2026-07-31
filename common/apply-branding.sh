@@ -34,9 +34,9 @@ cat > /etc/profile.d/50-pythagor.sh <<'EOF'
 # Invite PYTHAGOR OS — cyan pour l'utilisateur, rouge pour root.
 if [ -n "$BASH_VERSION" ]; then
     if [ "$(id -u)" -eq 0 ]; then
-        PS1='\[\e[1;31m\]△\[\e[0m\] \[\e[1;37m\]\w\[\e[0m\] # '
+        PS1='\[\e[1;31m\]❯\[\e[0m\] \[\e[1;37m\]\w\[\e[0m\] # '
     else
-        PS1='\[\e[1;36m\]△\[\e[0m\] \[\e[1;37m\]\w\[\e[0m\] $ '
+        PS1='\[\e[1;36m\]❯\[\e[0m\] \[\e[1;37m\]\w\[\e[0m\] $ '
     fi
 fi
 export PYTHAGOR_OS=1

@@ -11,7 +11,7 @@ mkdir -p "$OUT"
 
 command -v docker >/dev/null || { echo "docker absent — lance ./tools/setup-mac.sh"; exit 1; }
 
-echo "== PYTHAGOR OS $PYTHAGOR_VERSION ($PYTHAGOR_CODENAME) — édition PC / amd64 =="
+echo "== PYTHAGOR OS $PYTHAGOR_VERSION — édition PC / amd64 =="
 
 docker run --rm --privileged \
     -v "$ROOT:/src:ro" -v "$OUT:/out" \

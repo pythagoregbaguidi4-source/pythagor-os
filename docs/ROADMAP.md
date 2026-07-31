@@ -1,6 +1,6 @@
 # Feuille de route PYTHAGOR OS
 
-## 0.1 — Hypotenuse (socle)
+## 0.1 — socle
 
 - [x] Recette unique amd64 / arm64
 - [x] Branding : `os-release`, motd, invite, locale fr
@@ -11,14 +11,14 @@
 - [ ] Build ISO amd64 (`gh workflow run pythagor.yml -f cible=desktop`)
 - [ ] Premier boot vérifié en QEMU
 
-## 0.2 — Cathète (identité visuelle)
+## 0.2 — identité visuelle
 
-- [ ] Thème Plymouth (écran d'amorçage) avec le triangle
+- [ ] Thème Plymouth (écran d'amorçage) avec le nom PYTHAGOR OS
 - [ ] Fond d'écran + thème GTK
 - [ ] Thème GRUB
 - [ ] Métapaquet `pythagor-desktop` au lieu de listes brutes
 
-## 0.3 — Théorème (installable)
+## 0.3 — installable
 
 - [ ] Calamares : installer PYTHAGOR OS sur le disque, pas seulement en live
 - [ ] Dépôt APT `deb.biolynx-tic.com` pour livrer les mises à jour

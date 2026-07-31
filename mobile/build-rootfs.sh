@@ -16,7 +16,7 @@ mkdir -p "$OUT"
 
 command -v docker >/dev/null || { echo "docker absent — lance ./tools/setup-mac.sh"; exit 1; }
 
-echo "== PYTHAGOR OS $PYTHAGOR_VERSION ($PYTHAGOR_CODENAME) — édition mobile / arm64 =="
+echo "== PYTHAGOR OS $PYTHAGOR_VERSION — édition mobile / arm64 =="
 
 # --platform arm64 : émulé via binfmt/qemu, installé par setup-mac.sh
 docker run --rm --privileged --platform linux/arm64 \

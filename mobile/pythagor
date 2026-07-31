@@ -3,6 +3,14 @@
 # Installé dans $PREFIX/bin/pythagor par mobile/install-termux.sh.
 set -eu
 
+# termux-exec précharge une lib qui réécrit les chemins d'exécutables ; elle
+# fuit dans proot et casse execve("/usr/bin/env"). On la neutralise.
+unset LD_PRELOAD
+
+# Noyaux Android récents : le filtrage seccomp de proot renvoie ENOSYS
+# ("Function not implemented") sur chmod/chdir. On le désactive.
+export PROOT_NO_SECCOMP=1
+
 ROOTFS="${PYTHAGOR_ROOTFS:-$HOME/pythagor}"
 
 if [ ! -d "$ROOTFS/etc" ]; then

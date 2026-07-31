@@ -3,13 +3,12 @@
 Distribution Linux personnelle — **une recette, deux éditions**.
 
 ```
-                    /|
-                   / |
-                  /  |   PYTHAGOR OS
-             c   /   |  b        a² + b² = c²
-                /    |
-               /_____|
-                  a
+ ___  _   _ _____ _  _   _    ___  ___  ___
+| _ \| | | |_   _| || | /_\  / __|/ _ \| _ \
+|  _/| |_| | | | | __ |/ _ \| (_ | (_) |   /
+|_|   \___/  |_| |_||_/_/ \_\\___|\___/|_|_\
+
+              PYTHAGOR OS · BioLynx TIC
 ```
 
 ## Architecture
@@ -64,7 +63,7 @@ Un boot natif demande un appareil cible différent — voir `docs/ROADMAP.md`.
 
 ## Versions
 
-`0.1 Hypotenuse` — socle amorçable, branding, shell.
+`0.1` — socle amorçable, branding, shell.
 
 Licence : GPL-3.0 · BioLynx TIC
 
