@@ -1,0 +1,19 @@
+# PYTHAGOR OS — outils Kali-only : network (nécessite pythagor-enable-kali)
+chaosreader
+cryptcat
+dns2proxy
+dnschef
+fragroute
+fragrouter
+hexinject
+ipv6toolkit
+mitm6
+passivedns
+ptunnel-ng
+routersploit
+rustscan
+sbd
+sslstrip
+t50
+tcpxtract
+thc-ipv6

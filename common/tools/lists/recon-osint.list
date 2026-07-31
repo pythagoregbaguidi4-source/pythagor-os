@@ -1,0 +1,55 @@
+# PYTHAGOR OS — catalogue d'outils : recon-osint
+# desc: collecte d'information, DNS/subdomain, OSINT, énumération, scanning de découverte
+# est_size_mb: 2400
+# (généré ; une ligne = un paquet apt)
+arp-scan
+bind9-dnsutils
+bind9-host
+cutycapt
+dirb
+dmitry
+dnsenum
+dnsrecon
+dnstop
+dnstracer
+dnstwist
+dnsviz
+dnswalk
+fierce
+fpdns
+fping
+hping3
+httrack
+ike-scan
+instaloader
+ipcalc
+knot-dnsutils
+ldap-utils
+ldnsutils
+libimage-exiftool-perl
+masscan
+mtr-tiny
+nbtscan
+ndisc6
+netdiscover
+netmask
+nikto
+nmap
+onesixtyone
+p0f
+paris-traceroute
+prips
+sipcalc
+smbclient
+snmp
+ssldump
+sslscan
+sslyze
+tcptraceroute
+testssl.sh
+theharvester
+traceroute
+wafw00f
+whatweb
+whois
+zmap

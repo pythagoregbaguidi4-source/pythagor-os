@@ -1,0 +1,154 @@
+#!/bin/bash
+# help-me — génère le manuel complet de PYTHAGOR OS, l'affiche et l'enregistre
+# dans un fichier téléchargeable (home + carte SD).
+#
+# Tapé seul : produit PYTHAGOR-OS-GUIDE.txt et l'affiche.
+set -euo pipefail
+
+GUIDE_NAME="PYTHAGOR-OS-GUIDE.txt"
+CATALOG=/usr/local/share/pythagor/tools
+
+# Version de l'OS depuis os-release.
+VER=$(. /etc/os-release 2>/dev/null; echo "${VERSION:-?}")
+
+# Construit le guide (texte brut, sans couleurs — c'est un fichier).
+build_guide() {
+cat <<EOF
+================================================================================
+                        PYTHAGOR OS $VER — MANUEL
+================================================================================
+
+  ___  _   _ _____ _  _   _    ___  ___  ___
+ | _ \\| | | |_   _| || | /_\\  / __|/ _ \\| _ \\
+ |  _/| |_| | | | | __ |/ _ \\| (_ | (_) |   /
+ |_|   \\___/  |_| |_||_/_/ \\_\\\\___|\\___/|_|_\\
+
+Généré par la commande « help-me ».
+Ce fichier est enregistré pour être récupéré (voir la fin du document).
+
+
+1. QU'EST-CE QUE PYTHAGOR OS
+--------------------------------------------------------------------------------
+PYTHAGOR OS est une distribution GNU/Linux personnelle basée sur Debian 12
+(« bookworm »). Une seule recette produit deux éditions :
+
+  • Édition PC      : un ISO live amorçable sur clé USB (BIOS + UEFI).
+  • Édition mobile  : un rootfs arm64 exécuté via proot dans Termux, sans root,
+                      sur un téléphone Android.
+
+Sur mobile, PYTHAGOR OS tourne À L'INTÉRIEUR d'Android (pas à la place). Le shell
+que tu vois est un vrai environnement Debian.
+
+
+2. LANCER ET QUITTER
+--------------------------------------------------------------------------------
+  pythagor            Depuis Termux : démarre PYTHAGOR OS.
+  exit                Depuis PYTHAGOR OS : revient à Termux.
+  help-me             Affiche ce manuel et l'enregistre dans un fichier.
+
+
+3. COMMANDES PROPRES À PYTHAGOR OS
+--------------------------------------------------------------------------------
+  help-me
+      Génère ce manuel, l'affiche, et l'enregistre dans un fichier
+      téléchargeable (home + carte SD).
+
+  pythagor-tools list
+      Liste les catégories du catalogue d'outils (nombre de paquets + taille).
+
+  pythagor-tools search <terme>
+      Cherche un outil par nom dans tout le catalogue.
+
+  pythagor-tools info <catégorie>
+      Détaille les paquets d'une catégorie.
+
+  pythagor-tools install <catégorie> [catégorie…]
+      Installe une ou plusieurs catégories. Les paquets introuvables sont
+      ignorés et listés (jamais d'échec global).
+
+  pythagor-tools install all
+      Installe TOUT le catalogue (gros téléchargement).
+
+  pythagor-enable-kali
+      Ajoute les dépôts Kali Rolling (avec pinning : Debian reste la base) pour
+      débloquer les outils offensifs absents de Debian. Optionnel.
+
+
+4. LE CATALOGUE D'OUTILS
+--------------------------------------------------------------------------------
+EOF
+
+if [ -d "$CATALOG" ] && ls "$CATALOG"/*.list >/dev/null 2>&1; then
+    local td=0 tk=0
+    printf "  %-16s %8s %8s\n" "catégorie" "debian" "kali"
+    printf "  %-16s %8s %8s\n" "─────────" "──────" "────"
+    for f in "$CATALOG"/*.list; do
+        case "$f" in *.kali.list) continue;; esac
+        c=$(basename "$f" .list)
+        nd=$(grep -hEvc '^\s*(#|$)' "$f" 2>/dev/null || echo 0)
+        nk=$(grep -hEvc '^\s*(#|$)' "$CATALOG/$c.kali.list" 2>/dev/null || echo 0)
+        td=$((td + nd)); tk=$((tk + nk))
+        desc=$(sed -n 's/^# desc: //p' "$f" | head -1)
+        printf "  %-16s %8s %8s   %s\n" "$c" "$nd" "$nk" "$desc"
+    done
+    echo
+    echo "  Total : $td paquets Debian + $tk Kali-only."
+    echo "  Installe une catégorie avec :  pythagor-tools install <catégorie>"
+else
+    echo "  (catalogue non installé — voir pythagor-tools)"
+fi
+
+cat <<'EOF'
+
+
+5. GESTION DES PAQUETS (bases Debian)
+--------------------------------------------------------------------------------
+  sudo apt update                 Met à jour la liste des paquets.
+  sudo apt install <paquet>       Installe un paquet.
+  sudo apt remove <paquet>        Désinstalle un paquet.
+  sudo apt full-upgrade           Met à jour tout le système.
+  apt search <terme>              Cherche un paquet.
+
+
+6. SPÉCIFICITÉS MOBILE (proot / Android)
+--------------------------------------------------------------------------------
+  • La carte SD du téléphone est accessible dans /mnt/sdcard.
+  • Le DNS est fixé à 8.8.8.8 / 1.1.1.1 (Android ne le fournit pas à proot).
+  • Certaines opérations bas niveau (montages, pare-feu noyau) sont limitées :
+    c'est normal, proot n'est pas une vraie machine.
+  • Espace et débit sont ceux du téléphone : installe les outils par catégorie
+    plutôt que tout d'un coup.
+
+
+7. RÉCUPÉRER CE GUIDE
+--------------------------------------------------------------------------------
+Ce manuel a été enregistré ici :
+EOF
+}
+
+# --- génération ---
+guide="$(build_guide)"
+
+HOME_COPY="$HOME/$GUIDE_NAME"
+printf '%s\n' "$guide" > "$HOME_COPY"
+echo "  • $HOME_COPY" >> "$HOME_COPY"
+
+SAVED=("$HOME_COPY")
+# Carte SD (bind proot) : rend le fichier récupérable depuis le téléphone.
+for sd in /mnt/sdcard /sdcard; do
+    if [ -d "$sd" ] && [ -w "$sd" ]; then
+        if cp "$HOME_COPY" "$sd/$GUIDE_NAME" 2>/dev/null; then
+            SAVED+=("$sd/$GUIDE_NAME")
+        fi
+    fi
+done
+
+# Affiche le guide puis rappelle où il est enregistré.
+printf '%s\n' "$guide"
+echo "  Emplacements enregistrés :"
+for p in "${SAVED[@]}"; do echo "     $p"; done
+echo
+echo "  Sur Android, la copie /mnt/sdcard apparaît dans le stockage du téléphone"
+echo "  (dossier interne) — tu peux la transférer ou l'ouvrir depuis un gestionnaire"
+echo "  de fichiers."
+echo "================================================================================"

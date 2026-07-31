@@ -1,0 +1,22 @@
+# PYTHAGOR OS — outils Kali-only : wireless (nécessite pythagor-enable-kali)
+airgraph-ng
+bettercap
+bluelog
+bluesnarfer
+btlejack
+eapmd5pass
+giskismet
+gr-gsm
+hostapd-mana
+kalibrate-rtl
+mdk3
+mdk4
+proxmark3
+redfang
+rfcat
+rfidiot
+spooftooph
+ubertooth
+wifi-honey
+wifiphisher
+wifipumpkin3

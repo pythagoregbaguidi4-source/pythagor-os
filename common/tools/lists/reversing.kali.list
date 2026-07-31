@@ -1,0 +1,8 @@
+# PYTHAGOR OS — outils Kali-only : reversing (nécessite pythagor-enable-kali)
+cutter
+frida-tools
+ghidra
+jadx
+jd-gui
+python3-frida
+retdec

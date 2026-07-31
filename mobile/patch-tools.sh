@@ -16,6 +16,7 @@ tar -xzf "$SRC/pythagor-tools.tar.gz" -C "$tmp"
 
 install -Dm755 "$tmp/pythagor-tools"       "$R/usr/local/bin/pythagor-tools"
 install -Dm755 "$tmp/pythagor-enable-kali" "$R/usr/local/bin/pythagor-enable-kali"
+install -Dm755 "$tmp/help-me"              "$R/usr/local/bin/help-me"
 mkdir -p "$R/usr/local/share/pythagor/tools"
 cp "$tmp"/lists/*.list "$R/usr/local/share/pythagor/tools/"
 rm -rf "$tmp"

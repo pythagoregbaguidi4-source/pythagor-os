@@ -60,6 +60,7 @@ if [ -d /tmp/pythagor-tools ]; then
     echo "[branding] installation du catalogue d'outils"
     install -m755 /tmp/pythagor-tools/pythagor-tools      /usr/local/bin/pythagor-tools
     install -m755 /tmp/pythagor-tools/pythagor-enable-kali /usr/local/bin/pythagor-enable-kali
+    install -m755 /tmp/pythagor-tools/help-me             /usr/local/bin/help-me
     mkdir -p /usr/local/share/pythagor/tools
     cp /tmp/pythagor-tools/lists/*.list /usr/local/share/pythagor/tools/ 2>/dev/null || true
 fi

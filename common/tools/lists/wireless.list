@@ -1,0 +1,50 @@
+# PYTHAGOR OS — catalogue d'outils : wireless
+# desc: wifi, bluetooth, SDR/RF, NFC/RFID, attaques 802.11
+# est_size_mb: 2650
+# (généré ; une ligne = un paquet apt)
+airspy
+bladerf
+bluez
+bluez-hcidump
+bluez-tools
+btscanner
+cubicsdr
+direwolf
+dump1090-mutability
+fldigi
+gnss-sdr
+gnuradio
+gpsbabel
+gpsd
+gqrx-sdr
+gr-osmosdr
+hackrf
+horst
+hostapd
+inspectrum
+iw
+iwd
+kismet
+libnfc-bin
+limesuite
+macchanger
+multimon-ng
+neard
+obexfs
+obexftp
+pcsc-tools
+pcscd
+pixiewps
+qsstv
+reaver
+rfkill
+rtl-433
+rtl-sdr
+soapysdr-tools
+uhd-host
+ussp-push
+wavemon
+wireless-regdb
+wireless-tools
+wpasupplicant
+wsjtx
