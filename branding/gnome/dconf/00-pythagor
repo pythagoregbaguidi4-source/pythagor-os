@@ -1,0 +1,75 @@
+# PYTHAGOR OS — défauts GNOME système (look macOS « verre »).
+# Déposé dans /etc/dconf/db/local.d/, compilé par `dconf update`.
+# UN SEUL fichier (le critique de build l'exige : pas de clés dupliquées).
+
+[org/gnome/shell]
+disable-user-extensions=false
+enabled-extensions=['user-theme@gnome-shell-extensions.gcampax.github.com', 'dash-to-dock@micxgx.gmail.com', 'blur-my-shell@aunetx']
+favorite-apps=['org.gnome.Nautilus.desktop', 'firefox-esr.desktop', 'org.gnome.Terminal.desktop', 'org.gnome.Software.desktop', 'org.gnome.Settings.desktop']
+
+# Thème SHELL WhiteSur (nécessite l'extension user-theme, activée ci-dessus)
+[org/gnome/shell/extensions/user-theme]
+name='WhiteSur-Dark'
+
+# Apparence globale : GTK, icônes, curseur, MODE SOMBRE
+[org/gnome/desktop/interface]
+gtk-theme='WhiteSur-Dark'
+icon-theme='WhiteSur-dark'
+cursor-theme='WhiteSur-cursors'
+color-scheme='prefer-dark'
+font-name='Cantarell 11'
+enable-hot-corners=true
+clock-show-weekday=true
+
+[org/gnome/desktop/wm/preferences]
+theme='WhiteSur-Dark'
+# Boutons façon macOS, à gauche
+button-layout='close,minimize,maximize:'
+titlebar-font='Cantarell Bold 11'
+
+# Fond d'écran PYTHAGOR
+[org/gnome/desktop/background]
+picture-uri='file:///usr/share/backgrounds/pythagor.png'
+picture-uri-dark='file:///usr/share/backgrounds/pythagor.png'
+picture-options='zoom'
+primary-color='#05080a'
+
+[org/gnome/desktop/screensaver]
+picture-uri='file:///usr/share/backgrounds/pythagor.png'
+lock-enabled=false
+idle-activation-enabled=false
+
+# Dock type macOS (dash-to-dock, en bas, translucide)
+[org/gnome/shell/extensions/dash-to-dock]
+dock-position='BOTTOM'
+extend-height=false
+dock-fixed=false
+intellihide=true
+autohide=true
+transparency-mode='DYNAMIC'
+background-opacity=0.4
+customize-alphas=true
+min-alpha=0.2
+max-alpha=0.6
+running-indicator-style='DOTS'
+show-apps-at-top=false
+dash-max-icon-size=48
+click-action='minimize'
+show-mounts=false
+show-trash=false
+
+# Flou / translucidité (blur-my-shell v47)
+[org/gnome/shell/extensions/blur-my-shell]
+brightness=0.6
+sigma=30
+color-and-noise=true
+hacks-level=1
+
+# Session live : ni veille ni verrouillage
+[org/gnome/desktop/session]
+idle-delay=uint32 0
+
+[org/gnome/settings-daemon/plugins/power]
+sleep-inactive-ac-type='nothing'
+sleep-inactive-battery-type='nothing'
+power-button-action='interactive'

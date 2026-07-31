@@ -1,0 +1,7 @@
+#!/bin/sh
+# PYTHAGOR OS — 9300 : compilation des défauts GNOME (dconf).
+# Les fichiers /etc/dconf/db/local.d/00-pythagor et /etc/dconf/profile/user
+# sont déjà déposés (includes.chroot). On compile ici, UNE seule fois.
+set -e
+echo "[pythagor 9300] dconf update"
+dconf update

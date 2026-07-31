@@ -1,0 +1,19 @@
+#!/bin/sh
+# PYTHAGOR OS — 9000 : socle système (cible graphique, GDM, réseau).
+set -e
+echo "[pythagor 9000] socle système"
+
+systemctl set-default graphical.target
+systemctl enable gdm3 2>/dev/null || true
+
+# Neutraliser gnome-initial-setup (NE PAS le purger : Depends de gnome-core).
+systemctl mask gnome-initial-setup.service 2>/dev/null || true
+systemctl mask gnome-initial-setup-first-login.service 2>/dev/null || true
+mkdir -p /etc/skel/.config
+printf 'yes\n' > /etc/skel/.config/gnome-initial-setup-done
+
+# NetworkManager gère les interfaces ; pas de wait-online (boot live plus rapide).
+systemctl enable NetworkManager 2>/dev/null || true
+systemctl disable NetworkManager-wait-online.service 2>/dev/null || true
+printf '[main]\nplugins=ifupdown,keyfile\n\n[ifupdown]\nmanaged=false\n' \
+    > /etc/NetworkManager/NetworkManager.conf

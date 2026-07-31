@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Pythagor
+Description=PYTHAGOR OS boot splash
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/pythagor
+ScriptFile=/usr/share/plymouth/themes/pythagor/pythagor.script

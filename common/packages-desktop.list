@@ -1,17 +1,49 @@
 # Paquets supplémentaires, édition PC uniquement.
-# XFCE : léger, tient sur des machines modestes.
+# Bureau GNOME habillé façon macOS (verre / WhiteSur). Le thème WhiteSur et
+# blur-my-shell sont installés depuis GitHub par le hook 9100 (absents de Debian).
 
+# --- socle GNOME (bookworm = GNOME 43) ---
+gnome-core
+gdm3
+gnome-shell-extensions
+gnome-shell-extension-manager
+gnome-shell-extension-dashtodock
+gnome-tweaks
+dconf-cli
+dconf-gsettings-backend
+
+# --- serveur X (WaylandEnable=false : session Xorg, robuste en live) ---
 xserver-xorg
-xinit
-xfce4
-xfce4-terminal
-lightdm
+
+# --- réseau (gnome-core tire déjà NetworkManager) ---
 network-manager-gnome
+
+# --- applications ---
 firefox-esr
-mousepad
-thunar-archive-plugin
-pulseaudio
-pavucontrol
+gnome-terminal
+nautilus
+gnome-system-monitor
+gnome-disk-utility
+
+# --- firmwares (wifi/GPU sur vrai matériel, clé USB live) ---
+firmware-linux
+firmware-iwlwifi
+firmware-realtek
+firmware-atheros
+
+# --- amorçage graphique ---
+plymouth
+plymouth-themes
+
+# --- dépendances de BUILD du thème (purgées par le hook 9900) ---
+sassc
+libglib2.0-dev-bin
+
+# --- polices ---
+fonts-cantarell
+fonts-firacode
+fonts-noto-color-emoji
+fonts-dejavu-core
 
 # --- amorçage live ---
 live-boot

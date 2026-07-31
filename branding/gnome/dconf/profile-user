@@ -1,0 +1,3 @@
+# /etc/dconf/profile/user — fait lire à chaque session la base système « local ».
+user-db:user
+system-db:local

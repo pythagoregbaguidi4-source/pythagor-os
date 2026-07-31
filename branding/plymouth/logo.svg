@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="720" height="240" viewBox="0 0 720 240">
+  <!-- Fond transparent : composité sur la fenêtre Plymouth sombre. -->
+  <g font-family="DejaVu Sans, Helvetica, Arial, sans-serif" text-anchor="middle">
+    <text x="360" y="150" font-size="96" font-weight="700" letter-spacing="6" fill="#00d7d7">PYTHAGOR</text>
+    <rect x="210" y="172" width="300" height="2" fill="#00d7d7" opacity="0.5"/>
+    <text x="360" y="212" font-size="28" letter-spacing="18" fill="#5fdede">O S</text>
+  </g>
+</svg>

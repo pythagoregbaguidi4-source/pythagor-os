@@ -1,0 +1,38 @@
+#!/bin/sh
+# PYTHAGOR OS — 9100 : thème macOS (WhiteSur) + flou (blur-my-shell v47).
+# UN SEUL hook thème, UN SEUL clone de chaque dépôt (exigence du critique).
+set -e
+echo "[pythagor 9100] thème WhiteSur + blur-my-shell"
+
+WORK=/tmp/pythagor-theme
+rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK"
+export HOME=/root
+export DEBIAN_FRONTEND=noninteractive
+
+# --- blur-my-shell v47 = dernier compatible GNOME 43 (absent de Debian) ---
+BMS=/usr/share/gnome-shell/extensions/blur-my-shell@aunetx
+git clone --depth 1 --branch v47 https://github.com/aunetx/blur-my-shell.git bms
+mkdir -p "$BMS/schemas"
+cp -a bms/src/. "$BMS/"
+cp -a bms/metadata.json "$BMS/metadata.json"
+[ -d bms/resources/ui ] && cp -a bms/resources/ui "$BMS/ui" || true
+cp -a bms/schemas/*.gschema.xml "$BMS/schemas/" 2>/dev/null || true
+glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
+
+# --- WhiteSur : GTK + shell + icônes + curseurs (absents de Debian) ---
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git wsicon
+git clone --depth 1 https://github.com/vinceliuice/WhiteSur-cursors.git wscur
+( cd wsgtk && ./install.sh -d /usr/share/themes -c Dark -o normal -a normal -l )
+( cd wsicon && ./install.sh -d /usr/share/icons )
+( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } )
+
+# --- caches d'icônes ---
+if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+    for d in /usr/share/icons/WhiteSur /usr/share/icons/WhiteSur-dark; do
+        [ -d "$d" ] && gtk-update-icon-cache -f "$d" 2>/dev/null || true
+    done
+fi
+
+cd /
+rm -rf "$WORK"

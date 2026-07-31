@@ -1,0 +1,87 @@
+# PYTHAGOR OS — pack cybersécurité ESSENTIEL préinstallé dans l'ISO PC.
+# ~64 outils Debian bookworm (les noms absents/retirés sont filtrés au build).
+# Le reste du catalogue (metasploit, burpsuite, wifite… Kali-only) s'installe
+# après le boot :  pythagor-enable-kali  puis  pythagor-tools install <catégorie>.
+
+# --- scan réseau ---
+nmap
+masscan
+arp-scan
+netdiscover
+fping
+hping3
+
+# --- sniffing / MITM ---
+tcpdump
+wireshark
+tshark
+ettercap-graphical
+dsniff
+
+# --- pivot / relais ---
+netcat-openbsd
+socat
+proxychains4
+tor
+
+# --- recon DNS / SMB / SNMP ---
+dnsutils
+whois
+dnsrecon
+dnsenum
+fierce
+theharvester
+nbtscan
+onesixtyone
+enum4linux
+smbclient
+snmp
+
+# --- web ---
+nikto
+sqlmap
+dirb
+wfuzz
+wapiti
+whatweb
+cewl
+
+# --- mots de passe ---
+john
+hashcat
+hydra
+medusa
+ncrack
+crunch
+chntpw
+ophcrack
+
+# --- wifi / radio ---
+aircrack-ng
+reaver
+pixiewps
+kismet
+macchanger
+yersinia
+
+# --- reversing / analyse binaire ---
+radare2
+gdb
+ltrace
+strace
+binwalk
+foremost
+steghide
+yara
+hexedit
+
+# --- forensique ---
+sleuthkit
+testdisk
+libimage-exiftool-perl
+
+# --- audit / durcissement ---
+sslscan
+lynis
+chkrootkit
+rkhunter

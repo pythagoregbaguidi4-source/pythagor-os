@@ -1,0 +1,10 @@
+#!/bin/sh
+# PYTHAGOR OS — 9900 : nettoyage (DERNIER hook, après tous les git clone).
+# On retire seulement les outils de BUILD du thème (sassc, dev glib) ; on GARDE
+# git et ca-certificates, utiles dans un OS cybersécu.
+set -e
+echo "[pythagor 9900] nettoyage"
+
+apt-get purge --auto-remove -y sassc libglib2.0-dev-bin 2>/dev/null || true
+apt-get clean
+rm -rf /var/lib/apt/lists/* /tmp/pythagor-theme
