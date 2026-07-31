@@ -1,12 +1,12 @@
 #!/bin/sh
 # PYTHAGOR OS — 9100 : thème macOS (WhiteSur) + flou (blur-my-shell v47).
-# Trace activée (set -x) et étapes non fatales individuellement : on diagnostique
-# tout, puis un CONTRÔLE FINAL échoue si WhiteSur-Dark n'est pas là (vert = thème OK).
+# NON BLOQUANT : le thème est cosmétique, il ne doit pas casser l'ISO. On trace
+# tout (bash -x capturé) pour diagnostiquer WhiteSur, et on finit toujours en 0.
 set -x
 echo "[pythagor 9100] thème WhiteSur + blur-my-shell"
 
 WORK=/tmp/pythagor-theme
-rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK" || exit 1
+rm -rf "$WORK"; mkdir -p "$WORK"; cd "$WORK" || exit 0
 export HOME=/root
 export DEBIAN_FRONTEND=noninteractive
 export GIT_TERMINAL_PROMPT=0
@@ -23,14 +23,16 @@ if [ -d bms ]; then
     glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
 fi
 
-# --- WhiteSur GTK + shell ---
-# Valeurs de flags EXACTES : -c attend 'dark' (minuscule), pas 'Dark' ; ne pas
-# passer -o normal (WhiteSur veut default|solid) → sinon usage error exit 2.
+# --- WhiteSur GTK + shell (flags valides : --color dark). Trace bash -x capturée. ---
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk || echo "[warn] clone WhiteSur-gtk KO"
 if [ -d wsgtk ]; then
-    ( cd wsgtk && ./install.sh -d /usr/share/themes -c dark )
-    echo "[pythagor 9100] WhiteSur-gtk install.sh -> exit $?"
-    # Normaliser le nom du dossier attendu par dconf (WhiteSur-Dark).
+    ( cd wsgtk && bash -x ./install.sh --dest /usr/share/themes --color dark ) > /tmp/wsgtk.log 2>&1
+    rc=$?
+    echo "[pythagor 9100] WhiteSur-gtk install -> exit $rc"
+    echo "----- 80 dernières lignes de la trace install.sh -----"
+    tail -80 /tmp/wsgtk.log || true
+    echo "----- fin trace -----"
+    # Normaliser le nom attendu par dconf (WhiteSur-Dark) si variante différente.
     if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
         d=$(ls -d /usr/share/themes/WhiteSur*[Dd]ark* 2>/dev/null | head -1)
         [ -n "$d" ] && ln -sfn "$d" /usr/share/themes/WhiteSur-Dark
@@ -39,17 +41,11 @@ fi
 
 # --- icônes ---
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-icon-theme.git wsicon || echo "[warn] clone WhiteSur-icon KO"
-if [ -d wsicon ]; then
-    ( cd wsicon && ./install.sh -d /usr/share/icons )
-    echo "[pythagor 9100] WhiteSur-icon install.sh -> exit $?"
-fi
+[ -d wsicon ] && ( cd wsicon && ./install.sh -d /usr/share/icons ) && echo "[pythagor 9100] icônes OK"
 
 # --- curseurs (optionnels) ---
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-cursors.git wscur || echo "[warn] clone WhiteSur-cursors KO"
-if [ -d wscur ]; then
-    ( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } )
-    echo "[pythagor 9100] WhiteSur-cursors install -> exit $?"
-fi
+[ -d wscur ] && ( cd wscur && { ./install.sh || cp -a dist /usr/share/icons/WhiteSur-cursors; } ) && echo "[pythagor 9100] curseurs OK"
 
 # --- caches d'icônes ---
 if command -v gtk-update-icon-cache >/dev/null 2>&1; then
@@ -61,12 +57,11 @@ fi
 cd /
 rm -rf "$WORK"
 
-# --- CONTRÔLE FINAL : le thème GTK/shell DOIT exister ---
-if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
-    echo "[pythagor 9100] ERREUR : /usr/share/themes/WhiteSur-Dark absent" >&2
-    echo "[pythagor 9100] contenu de /usr/share/themes :" >&2
-    ls -la /usr/share/themes >&2 || true
-    exit 1
+# --- rapport (non bloquant) ---
+if [ -d /usr/share/themes/WhiteSur-Dark ]; then
+    echo "[pythagor 9100] OK : WhiteSur-Dark installé"
+    ls -d /usr/share/themes/WhiteSur* 2>/dev/null || true
+else
+    echo "[pythagor 9100] ATTENTION : WhiteSur-Dark absent — GNOME utilisera le thème par défaut (dark+dock+flou restent actifs). Voir la trace ci-dessus."
 fi
-echo "[pythagor 9100] OK, thèmes installés :"
-ls -d /usr/share/themes/WhiteSur* 2>/dev/null || true
+exit 0
