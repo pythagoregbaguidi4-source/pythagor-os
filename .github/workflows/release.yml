@@ -1,0 +1,38 @@
+name: publier l'ISO en Release
+
+# Récupère l'ISO déjà construit par un run existant et le publie en Release
+# (téléchargement direct, sans login). Upload fait par le serveur GitHub (rapide).
+# Tag 'iso-*' choisi exprès pour NE PAS déclencher le workflow de build (tags 'v*').
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        description: "ID du run contenant l'artefact ISO"
+        required: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      actions: read
+    steps:
+      - name: Récupérer l'ISO du run
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh run download ${{ inputs.run_id }} -n pythagor-os-amd64-iso \
+            -R ${{ github.repository }} -D iso
+          ls -lh iso/
+
+      - name: Publier la Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create iso-0.1 iso/*.iso \
+            -R ${{ github.repository }} \
+            --title "PYTHAGOR OS 0.1 — édition PC" \
+            --notes "ISO live bootable (BIOS + UEFI). Bureau GNOME façon macOS (thème WhiteSur, dock, effet verre), 114 outils cybersécu préinstallés. Graver sur clé USB (≥ 4 Go)." \
+          || gh release upload iso-0.1 iso/*.iso -R ${{ github.repository }} --clobber
+          echo "=== lien direct ==="
+          echo "https://github.com/${{ github.repository }}/releases/download/iso-0.1/$(basename iso/*.iso)"
