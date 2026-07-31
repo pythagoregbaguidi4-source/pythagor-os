@@ -23,11 +23,18 @@ if [ -d bms ]; then
     glib-compile-schemas "$BMS/schemas/" 2>/dev/null || true
 fi
 
-# --- WhiteSur GTK + shell (sans -l libadwaita, fragile en chroot) ---
+# --- WhiteSur GTK + shell ---
+# Valeurs de flags EXACTES : -c attend 'dark' (minuscule), pas 'Dark' ; ne pas
+# passer -o normal (WhiteSur veut default|solid) → sinon usage error exit 2.
 git clone --depth 1 https://github.com/vinceliuice/WhiteSur-gtk-theme.git wsgtk || echo "[warn] clone WhiteSur-gtk KO"
 if [ -d wsgtk ]; then
-    ( cd wsgtk && ./install.sh -d /usr/share/themes -c Dark -o normal )
+    ( cd wsgtk && ./install.sh -d /usr/share/themes -c dark )
     echo "[pythagor 9100] WhiteSur-gtk install.sh -> exit $?"
+    # Normaliser le nom du dossier attendu par dconf (WhiteSur-Dark).
+    if [ ! -d /usr/share/themes/WhiteSur-Dark ]; then
+        d=$(ls -d /usr/share/themes/WhiteSur*[Dd]ark* 2>/dev/null | head -1)
+        [ -n "$d" ] && ln -sfn "$d" /usr/share/themes/WhiteSur-Dark
+    fi
 fi
 
 # --- icônes ---
