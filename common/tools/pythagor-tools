@@ -108,11 +108,18 @@ cmd_install() {
     echo "${c_cyan}mise à jour des index apt…${c_off}"
     $SUDO apt-get update
 
-    local c
+    local c avail
     for c in "${cats[@]}"; do
         [ -f "$CATALOG/$c.list" ] || { echo "${c_red}catégorie inconnue : $c${c_off}"; continue; }
+        # Garde-fou espace : ne jamais saturer le stockage (bloquerait le rootfs).
+        avail=$(df -Pm / | awk 'NR==2{print $4}')
+        if [ "${avail:-0}" -lt 2048 ]; then
+            echo "${c_red}⚠ espace bas (${avail} Mo libres) — arrêt avant '$c'.${c_off}"
+            echo "${c_grey}Libère de la place puis relance pour continuer.${c_off}"
+            break
+        fi
         echo
-        echo "${c_cyan}══ $c ══${c_off}"
+        echo "${c_cyan}══ $c ══${c_off}  ${c_grey}(${avail} Mo libres)${c_off}"
         # shellcheck disable=SC2046
         install_pkgs $(pkgs_of "$c")
         if [ -s "$CATALOG/$c.kali.list" ]; then
@@ -123,6 +130,8 @@ cmd_install() {
                 echo "${c_grey}  $(kpkgs_of "$c" | wc -l | tr -d ' ') outils Kali sautés (dépôt désactivé)${c_off}"
             fi
         fi
+        # Vide le cache des .deb pour minimiser le pic d'occupation disque.
+        $SUDO apt-get clean
     done
     echo
     echo "${c_grn}✔ terminé.${c_off}  Ignorés : $(wc -l < /tmp/pythagor-tools-skipped.txt | tr -d ' ')"
