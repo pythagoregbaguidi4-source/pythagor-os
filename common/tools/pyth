@@ -11,19 +11,26 @@ usage() {
     cat <<EOF
 ${c_cyan}pyth${c_off} — boîte à outils PythagorOS
 
+  ${c_cyan}pyth tools${c_off} [list|search|info|install …]
+                        catalogue d'outils (1409, par catégorie)
   ${c_cyan}pyth crack${c_off} [options]   audit Wi-Fi WPA/WPA2 (voir: pyth crack -h)
   ${c_cyan}pyth audit${c_off}             mode audit : arme la carte puis vise une cible
+  ${c_cyan}pyth enable-kali${c_off}       débloque les outils Kali-only (opt-in)
+  ${c_cyan}pyth update${c_off} [--check]  met à jour PythagorOS en place (pas d'ISO)
   ${c_cyan}pyth help${c_off}              affiche cette aide
 
-${c_grey}Rappel : usage réservé aux réseaux dont tu es propriétaire ou pour
-lesquels tu disposes d'une autorisation écrite.${c_off}
+${c_grey}Rappel (crack/audit) : usage réservé aux réseaux dont tu es propriétaire
+ou pour lesquels tu disposes d'une autorisation écrite.${c_off}
 EOF
 }
 
 sub="${1:-help}"; shift 2>/dev/null || true
 case "$sub" in
+    tools|t)      exec pythagor-tools "$@" ;;
     crack)        exec pyth-crack "$@" ;;
     audit)        exec pyth-audit-launch --force "$@" ;;
+    enable-kali)  exec pythagor-enable-kali "$@" ;;
+    update)       exec pythagor-update "$@" ;;
     help|-h|--help) usage ;;
     *) echo "commande inconnue : $sub" >&2; usage; exit 1 ;;
 esac
