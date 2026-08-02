@@ -67,9 +67,20 @@ mkdir -p config/includes.chroot/tmp/pythagor-tools/lists
 cp /src/common/tools/pythagor-tools /src/common/tools/pythagor-enable-kali \
    /src/common/tools/help-me /src/common/tools/pythagor-update \
    /src/common/tools/pythagor-update-notify /src/common/tools/profile-update-check.sh \
+   /src/common/tools/pyth /src/common/tools/pyth-crack \
+   /src/common/tools/pyth-audit-arm /src/common/tools/pyth-audit-launch \
    config/includes.chroot/tmp/pythagor-tools/
 cp /src/branding/gnome/pythagor-update-check.desktop config/includes.chroot/tmp/pythagor-tools/
 cp /src/common/tools/lists/*.list config/includes.chroot/tmp/pythagor-tools/lists/ 2>/dev/null || true
+
+# --- MODE AUDIT : service d'armement (systemd) + lanceur (autostart GNOME) ---
+install -Dm644 /src/desktop/audit/pyth-audit-arm.service \
+        config/includes.chroot/etc/systemd/system/pyth-audit-arm.service
+mkdir -p config/includes.chroot/etc/systemd/system/multi-user.target.wants
+ln -sf ../pyth-audit-arm.service \
+       config/includes.chroot/etc/systemd/system/multi-user.target.wants/pyth-audit-arm.service
+install -Dm644 /src/branding/gnome/pyth-audit-launch.desktop \
+        config/includes.chroot/etc/xdg/autostart/pyth-audit-launch.desktop
 
 # --- cachet de version (pour pythagor-update --check) ---
 mkdir -p config/includes.chroot/etc
@@ -94,9 +105,11 @@ cp /src/branding/plymouth/pythagor.script   "$PTH/"
 convert -background none /src/branding/plymouth/logo.svg -resize 720x240 "$PTH/logo.png"
 convert -size 8x8 xc:'#00d7d7' "$PTH/bar.png"
 
-# --- hooks GNOME (9000..9900), après le hook de branding 0100 ---
+# --- hooks GNOME chroot (9000..9900) + hook binary (9500 entrée menu audit) ---
 cp /src/desktop/hooks/*.hook.chroot config/hooks/normal/
+cp /src/desktop/hooks/*.hook.binary config/hooks/normal/ 2>/dev/null || true
 chmod +x config/hooks/normal/*.hook.chroot
+chmod +x config/hooks/normal/*.hook.binary 2>/dev/null || true
 
 # --- construction ---
 lb build

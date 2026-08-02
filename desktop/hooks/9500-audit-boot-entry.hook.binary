@@ -1,0 +1,59 @@
+#!/bin/sh
+# PYTHAGOR OS — 9500 (binary) : ajoute l'entrée « Mode Audit » au menu de
+# démarrage (BIOS/isolinux + UEFI/grub). Cette entrée reprend le boot live
+# normal en y ajoutant le paramètre kernel `pyth-audit`, qui déclenche
+# l'armement Wi-Fi (pyth-audit-arm.service) et le lanceur (pyth-audit-launch).
+# NON BLOQUANT : tout est gardé, le hook sort toujours en 0 (ne casse pas le build).
+set -x
+echo "[pythagor 9500] entrée de menu « Mode Audit »"
+
+TITLE="PYTHAGOR OS - Mode Audit"
+
+# ---------------------------------------------------------------- isolinux ---
+for cfg in binary/isolinux/live.cfg binary/isolinux/live.cfg.tmp; do
+    [ -f "$cfg" ] || continue
+    if grep -q '^label pyth-audit' "$cfg" 2>/dev/null; then
+        echo "[pythagor 9500] entrée isolinux déjà présente"
+        continue
+    fi
+    APPEND=$(grep -m1 '^[[:space:]]*append ' "$cfg" | sed 's/^[[:space:]]*append[[:space:]]*//')
+    LINUX=$(grep -m1  '^[[:space:]]*linux '  "$cfg" | sed 's/^[[:space:]]*linux[[:space:]]*//')
+    INITRD=$(grep -m1 '^[[:space:]]*initrd ' "$cfg" | sed 's/^[[:space:]]*initrd[[:space:]]*//')
+    if [ -n "$LINUX" ] && [ -n "$APPEND" ]; then
+        {
+            printf '\nlabel pyth-audit\n'
+            printf '\tmenu label %s\n' "$TITLE"
+            printf '\tlinux %s\n' "$LINUX"
+            [ -n "$INITRD" ] && printf '\tinitrd %s\n' "$INITRD"
+            printf '\tappend %s pyth-audit\n' "$APPEND"
+        } >> "$cfg"
+        echo "[pythagor 9500] entrée isolinux ajoutée dans $cfg"
+    else
+        echo "[pythagor 9500] gabarit isolinux inattendu ($cfg) — ignoré"
+    fi
+done
+
+# -------------------------------------------------------------------- grub ---
+for cfg in binary/boot/grub/grub.cfg; do
+    [ -f "$cfg" ] || continue
+    if grep -q 'Mode Audit' "$cfg" 2>/dev/null; then
+        echo "[pythagor 9500] entrée grub déjà présente"
+        continue
+    fi
+    GLINUX=$(grep -m1  '^[[:space:]]*linux '  "$cfg")
+    GINITRD=$(grep -m1 '^[[:space:]]*initrd ' "$cfg")
+    if [ -n "$GLINUX" ]; then
+        {
+            printf '\nmenuentry "%s" {\n' "$TITLE"
+            printf '%s pyth-audit\n' "$GLINUX"
+            [ -n "$GINITRD" ] && printf '%s\n' "$GINITRD"
+            printf '}\n'
+        } >> "$cfg"
+        echo "[pythagor 9500] entrée grub ajoutée dans $cfg"
+    else
+        echo "[pythagor 9500] gabarit grub inattendu ($cfg) — ignoré"
+    fi
+done
+
+echo "[pythagor 9500] terminé"
+exit 0

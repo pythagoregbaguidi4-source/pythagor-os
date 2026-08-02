@@ -1,0 +1,29 @@
+#!/bin/bash
+# pyth — dispatcher des commandes PythagorOS.
+#   pyth crack …   audit WPA/WPA2 (handshake/PMKID)   → pyth-crack
+#   pyth audit     lanceur du mode audit (arme + vise)  → pyth-audit-launch
+#   pyth help      cette aide
+set -u
+
+c_cyan=$'\e[1;36m'; c_grey=$'\e[0;90m'; c_off=$'\e[0m'
+
+usage() {
+    cat <<EOF
+${c_cyan}pyth${c_off} — boîte à outils PythagorOS
+
+  ${c_cyan}pyth crack${c_off} [options]   audit Wi-Fi WPA/WPA2 (voir: pyth crack -h)
+  ${c_cyan}pyth audit${c_off}             mode audit : arme la carte puis vise une cible
+  ${c_cyan}pyth help${c_off}              affiche cette aide
+
+${c_grey}Rappel : usage réservé aux réseaux dont tu es propriétaire ou pour
+lesquels tu disposes d'une autorisation écrite.${c_off}
+EOF
+}
+
+sub="${1:-help}"; shift 2>/dev/null || true
+case "$sub" in
+    crack)        exec pyth-crack "$@" ;;
+    audit)        exec pyth-audit-launch --force "$@" ;;
+    help|-h|--help) usage ;;
+    *) echo "commande inconnue : $sub" >&2; usage; exit 1 ;;
+esac

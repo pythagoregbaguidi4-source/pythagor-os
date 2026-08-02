@@ -1,0 +1,70 @@
+#!/bin/bash
+# pyth-audit-launch — lanceur du MODE AUDIT de PythagorOS.
+# Ouvert automatiquement dans la session (autostart) quand le boot a été fait
+# via l'entrée « Mode Audit » (paramètre kernel `pyth-audit`). Sinon inerte.
+# Affiche l'état de la carte armée, exige la confirmation d'autorisation, puis
+# demande la cible et lance `pyth crack`. L'humain vise TOUJOURS.
+#
+#   pyth-audit-launch            (autostart : n'agit que si `pyth-audit` au boot)
+#   pyth-audit-launch --force    (via `pyth audit` : agit toujours)
+set -u
+
+STATE=/run/pyth-audit
+c_cyan=$'\e[1;36m'; c_grn=$'\e[1;32m'; c_red=$'\e[1;31m'; c_grey=$'\e[0;90m'; c_off=$'\e[0m'
+
+force=0; [ "${1:-}" = "--force" ] && force=1
+if [ "$force" -eq 0 ] && ! grep -qw pyth-audit /proc/cmdline 2>/dev/null; then
+    exit 0   # boot normal : le mode audit ne se déclenche pas
+fi
+
+clear 2>/dev/null || true
+cat <<EOF
+${c_cyan}
+   ___  _   _ _____ _  _
+  | _ \\| | | |_   _| || |   PythagorOS · MODE AUDIT
+  |  _/| |_| | | | | __ |   audit Wi-Fi WPA/WPA2
+  |_|   \\___/  |_| |_||_|
+${c_off}
+EOF
+
+# --- état de la carte armée ---
+mon=""; [ -r "$STATE/monitor" ] && mon="$(cat "$STATE/monitor" 2>/dev/null)"
+if [ -n "$mon" ]; then
+    echo "${c_grn}✔ carte armée en mode moniteur : ${mon}${c_off}"
+else
+    echo "${c_red}✗ aucune carte en mode moniteur.${c_off}"
+    echo "${c_grey}  Cause probable : machine virtuelle (carte virtuelle sans moniteur),"
+    echo "  ou adaptateur non compatible. Le mode audit exige du matériel réel"
+    echo "  + un adaptateur Wi-Fi supportant moniteur/injection.${c_off}"
+    echo
+    read -r -p "Entrée pour fermer… " _
+    exit 1
+fi
+echo
+
+# --- porte d'autorisation ---
+echo "${c_red}⚠ N'audite QUE des réseaux dont tu es propriétaire ou pour lesquels"
+echo "  tu as une AUTORISATION ÉCRITE. Sinon, c'est illégal.${c_off}"
+read -r -p "$(printf '%s' "${c_cyan}Tape 'OUI' pour confirmer : ${c_off}")" ok
+[ "$ok" = "OUI" ] || { echo "${c_red}Autorisation non confirmée — abandon.${c_off}"; sleep 2; exit 1; }
+echo
+
+# --- cible ---
+read -r -p "BSSID de la cible (AA:BB:CC:DD:EE:FF) : " bssid
+[ -n "$bssid" ] || { echo "${c_red}BSSID requis — abandon.${c_off}"; sleep 2; exit 1; }
+read -r -p "Canal (Entrée = auto-détection)          : " chan
+read -r -p "Méthode [handshake/pmkid/both] (déf.: handshake) : " meth
+meth="${meth:-handshake}"
+
+# --- lancement (pyth crack a déjà été autorisé ici → --yes) ---
+args=(-b "$bssid" -m "$meth" --yes)
+[ -n "$chan" ] && args+=(-c "$chan")
+echo
+echo "${c_cyan}== lancement : pyth crack ${args[*]} ==${c_off}"
+sudo pyth crack "${args[@]}"
+rc=$?
+
+echo
+echo "${c_grey}(code de sortie : $rc)${c_off}"
+read -r -p "Entrée pour fermer… " _
+exit "$rc"

@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=PythagorOS Mode Audit
+Comment=Lanceur du mode audit Wi-Fi (n'agit qu'au boot « Mode Audit »)
+Exec=x-terminal-emulator -e pyth-audit-launch
+Terminal=false
+NoDisplay=true
+X-GNOME-Autostart-enabled=true
+X-GNOME-Autostart-Delay=3

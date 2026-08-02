@@ -80,6 +80,18 @@ que tu vois est un vrai environnement Debian.
       démarrage. (Persiste si le système est installé sur disque ou en live
       persistant ; sur mobile, tout est déjà persistant.)
 
+  pyth crack -b <BSSID> -c <canal> [-m handshake|pmkid|both]
+      Audit Wi-Fi WPA/WPA2 : mode moniteur, désauth CIBLÉE, capture du
+      handshake/PMKID (timeouts + nettoyage). Réservé aux réseaux que tu
+      possèdes ou pour lesquels tu as une AUTORISATION ÉCRITE. Requiert un
+      adaptateur compatible moniteur/injection (pas en machine virtuelle).
+      Dépendances : sudo apt install aircrack-ng iw hcxdumptool hcxtools
+
+  pyth audit  (ou entrée de boot « PYTHAGOR OS - Mode Audit »)
+      MODE AUDIT : démarre en armant la carte en mode moniteur puis ouvre le
+      lanceur, prêt à recevoir TA cible. Choisi via l'entrée dédiée du menu de
+      démarrage (opt-in) ; un boot normal n'active rien.
+
 
 4. LE CATALOGUE D'OUTILS
 --------------------------------------------------------------------------------

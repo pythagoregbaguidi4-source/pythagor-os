@@ -30,7 +30,8 @@ fi
 # ------------------------------------------------------------------- outils ---
 if [ -d "$SRC/common/tools" ]; then
     log "catalogue d'outils + commandes"
-    for c in pythagor-tools pythagor-enable-kali help-me pythagor-update; do
+    for c in pythagor-tools pythagor-enable-kali help-me pythagor-update \
+             pyth pyth-crack pyth-audit-arm pyth-audit-launch; do
         [ -f "$SRC/common/tools/$c" ] && install -Dm755 "$SRC/common/tools/$c" "/usr/local/bin/$c"
     done
     mkdir -p /usr/local/share/pythagor/tools
@@ -78,6 +79,22 @@ if [ -d /usr/share/gnome-shell ] || command -v gnome-shell >/dev/null 2>&1; then
         install -Dm644 "$SRC/branding/gnome/dconf/profile-user" /etc/dconf/profile/user
         dconf update 2>/dev/null || true
     fi
+
+    # MODE AUDIT : service d'armement Wi-Fi + lanceur (autostart).
+    # Le service est inerte hors boot « Mode Audit » (ConditionKernelCommandLine).
+    if [ -f "$SRC/desktop/audit/pyth-audit-arm.service" ]; then
+        log "mode audit (service + lanceur)"
+        install -Dm644 "$SRC/desktop/audit/pyth-audit-arm.service" /etc/systemd/system/pyth-audit-arm.service
+        if ! systemctl enable pyth-audit-arm.service >/dev/null 2>&1; then
+            mkdir -p /etc/systemd/system/multi-user.target.wants
+            ln -sf /etc/systemd/system/pyth-audit-arm.service \
+                   /etc/systemd/system/multi-user.target.wants/pyth-audit-arm.service
+        fi
+    fi
+    [ -f "$SRC/branding/gnome/pyth-audit-launch.desktop" ] && \
+        install -Dm644 "$SRC/branding/gnome/pyth-audit-launch.desktop" \
+                /etc/xdg/autostart/pyth-audit-launch.desktop
+
     rm -rf "$WORK"
 fi
 

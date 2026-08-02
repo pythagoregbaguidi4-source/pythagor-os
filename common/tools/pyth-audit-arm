@@ -1,0 +1,43 @@
+#!/bin/bash
+# pyth-audit-arm — arme la carte Wi-Fi en mode moniteur pour le MODE AUDIT.
+# Lancé en root, généralement par pyth-audit-arm.service (au boot, si le
+# paramètre kernel `pyth-audit` est présent). Best-effort : ne bloque JAMAIS
+# le démarrage — en cas de souci il journalise et sort en 0. L'iface armée est
+# écrite dans /run/pyth-audit/monitor pour le lanceur.
+set -u
+
+STATE=/run/pyth-audit
+log(){ echo "[pyth-audit-arm] $*"; }
+
+[ "$(id -u)" -eq 0 ] || { log "doit être root"; exit 0; }
+mkdir -p "$STATE"
+
+command -v airmon-ng >/dev/null 2>&1 || { log "airmon-ng absent — pas d'armement (installe aircrack-ng)"; exit 0; }
+command -v iw        >/dev/null 2>&1 || { log "iw absent — pas d'armement"; exit 0; }
+
+# --- interfaces Wi-Fi (type != monitor déjà) ---
+mon=""
+# déjà en moniteur ?
+mon="$(iw dev 2>/dev/null | awk '/Interface/{i=$2} /type monitor/{print i; exit}')"
+if [ -n "$mon" ]; then
+    log "déjà en mode moniteur : $mon"
+else
+    base="$(iw dev 2>/dev/null | awk '/Interface/{print $2; exit}')"
+    [ -n "$base" ] || { log "aucune carte Wi-Fi détectée — rien à armer"; exit 0; }
+    echo "$base" > "$STATE/base-iface"
+    log "kill des processus parasites (NetworkManager, wpa_supplicant…)"
+    airmon-ng check kill >/dev/null 2>&1 || true
+    log "activation du mode moniteur sur $base"
+    airmon-ng start "$base" >/dev/null 2>&1 || true
+    mon="$(iw dev 2>/dev/null | awk '/Interface/{i=$2} /type monitor/{print i; exit}')"
+    [ -n "$mon" ] || mon="${base}mon"
+fi
+
+if iw dev 2>/dev/null | awk '/Interface/{i=$2} /type monitor/{print i}' | grep -qx "$mon"; then
+    echo "$mon" > "$STATE/monitor"
+    log "OK — carte armée en moniteur : $mon"
+else
+    log "ATTENTION — mode moniteur non confirmé (carte non compatible ?)"
+    : > "$STATE/monitor"
+fi
+exit 0

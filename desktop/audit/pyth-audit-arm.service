@@ -1,0 +1,15 @@
+[Unit]
+Description=PythagorOS — armement Wi-Fi (mode audit)
+Documentation=man:pyth-crack
+# N'agit QUE si le boot a été fait via l'entrée « Mode Audit » (param kernel).
+# Sur un boot normal, la condition rend l'unité inerte : aucun effet.
+ConditionKernelCommandLine=pyth-audit
+Before=display-manager.service
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/local/bin/pyth-audit-arm
+
+[Install]
+WantedBy=multi-user.target

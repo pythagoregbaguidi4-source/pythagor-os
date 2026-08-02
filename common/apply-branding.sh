@@ -58,7 +58,8 @@ echo 'LANG=fr_FR.UTF-8' > /etc/default/locale
 # --- catalogue d'outils + système de mise à jour (si présent) ---
 if [ -d /tmp/pythagor-tools ]; then
     echo "[branding] installation du catalogue d'outils + MAJ"
-    for c in pythagor-tools pythagor-enable-kali help-me pythagor-update pythagor-update-notify; do
+    for c in pythagor-tools pythagor-enable-kali help-me pythagor-update pythagor-update-notify \
+             pyth pyth-crack pyth-audit-arm pyth-audit-launch; do
         [ -f "/tmp/pythagor-tools/$c" ] && install -m755 "/tmp/pythagor-tools/$c" "/usr/local/bin/$c"
     done
     mkdir -p /usr/local/share/pythagor/tools
