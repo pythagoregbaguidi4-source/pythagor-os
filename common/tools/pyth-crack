@@ -1,11 +1,16 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# =====================================================================
-#  ⚠️  EN-TÊTE À COMPLÉTER
-#  Ton message s'est arrêté à « Intégrer obligatoirement cet en-tête au
-#  début du fichier : » sans le contenu. REMPLACE ce bloc par ton
-#  en-tête exact (je le réintègre tel quel dès que tu me le donnes).
-# =====================================================================
+# ======================================================================
+#   ____  _   _ _____ _   _     _____ ___   ___  _     ____
+#  |  _ \| \ | |_   _| | | |   |_   _/ _ \ / _ \| |   / ___|
+#  | |_) |  \| | | | | |_| |     | || | | | | | | |   \___ \
+#  |  __/| |\  | | | |  _  |     | || |_| | |_| | |___ ___) |
+#  |_|   |_| \_| |_| |_| |_|     |_| \___/ \___/|_____|____/
+#
+#   PYTH TOOLS  ·  PythagorOS — suite d'audit offensif
+#   module : pyth crack  —  audit Wi-Fi WPA/WPA2 (handshake / PMKID)
+#   auteur : Pythagor
+# ======================================================================
 """
 pyth crack — PythagorOS · audit WPA/WPA2 (handshake / PMKID)
 
