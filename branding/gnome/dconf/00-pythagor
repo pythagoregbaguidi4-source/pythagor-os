@@ -58,12 +58,45 @@ click-action='minimize'
 show-mounts=false
 show-trash=false
 
-# Flou / translucidité (blur-my-shell v47)
+# ── EFFET VERRE (blur-my-shell v47) ──────────────────────────────────────────
+# Fenêtres, panneaux et menus translucides + floutés. Les COULEURS Graphite ne
+# changent pas : on ne touche qu'à la translucidité (opacity) et au flou (sigma).
 [org/gnome/shell/extensions/blur-my-shell]
 brightness=0.6
 sigma=30
 color-and-noise=true
 hacks-level=1
+
+# Barre du haut + menus système en verre
+[org/gnome/shell/extensions/blur-my-shell/panel]
+blur=true
+brightness=0.6
+sigma=30
+static-blur=false
+unblur-in-overview=false
+
+# Vue d'ensemble (Activités) en verre
+[org/gnome/shell/extensions/blur-my-shell/overview]
+blur=true
+brightness=0.6
+sigma=30
+
+# Dock en verre
+[org/gnome/shell/extensions/blur-my-shell/dash-to-dock]
+blur=true
+brightness=0.6
+sigma=30
+static-blur=true
+
+# FENÊTRES d'applications en verre : légèrement translucides (opacity/255) sur
+# fond flouté. La couleur reste Graphite ; la fenêtre ACTIVE redevient plus
+# opaque (dynamic-opacity) pour rester lisible.
+[org/gnome/shell/extensions/blur-my-shell/applications]
+blur=true
+opacity=235
+dynamic-opacity=true
+blur-on-overview=true
+enable-all=true
 
 # Session live : ni veille ni verrouillage
 [org/gnome/desktop/session]
